@@ -1,0 +1,176 @@
+@tailwind base;
+@tailwind components;
+@layer base {
+  html {
+    scroll-behavior: smooth;
+  }
+}
+@layer components {
+  .text-blog-dark {
+    font-family: Merriweather, Georgia, serif;
+    font-size: 16px;
+    font-weight: 400;
+    font-style: normal;
+    line-height: 28px;
+    color: rgba(255, 255, 255, 0.88);
+  }
+  .text-blog {
+    font-family: Merriweather, Georgia, serif;
+    font-size: 16px;
+    font-weight: 400;
+    font-style: normal;
+    line-height: 28px;
+    color: #222
+  }
+  .bg-pink-grad {
+    background: #ffa7c4;
+    background: linear-gradient(to left, #ffa7c4 0%, #ffcce6 100%);
+    -webkit-background-clip: text;
+    background-clip: text;
+    -webkit-text-fill-color: transparent;
+  }
+  .bg-red-grad {
+    background: #801d3d;
+    background: linear-gradient(to left, #801d3d 0%, #d23669 100%);
+    -webkit-background-clip: text;
+    background-clip: text;
+    -webkit-text-fill-color: transparent;
+  }
+
+  .shadow-gradient-pink:before {
+    content: "";
+    z-index: -1;
+    position: absolute;
+    top: 0;
+    right: 0;
+    bottom: 0;
+    left: 0;
+    background: linear-gradient(360deg, #ffa7c4 -14%, #ffffff 114%);
+    transform: translate3d(10px, 5px, 0) scale(0.85);
+    filter: blur(20px);
+    opacity: var(1);
+    transition: opacity 0.3s;
+    border-radius: inherit;
+  }
+
+  /* 
+  * Prevents issues when the parent creates a 
+  * stacking context. (For example, using the transform
+  * property )
+  */
+  .shadow-gradient-pink::after {
+    content: "";
+    z-index: -1;
+    position: absolute;
+    top: 0;
+    right: 0;
+    bottom: 0;
+    left: 0;
+    background: inherit;
+    border-radius: inherit;
+  }
+
+  .shadow-gradient-red:before {
+    content: "";
+    z-index: -1;
+    position: absolute;
+    top: 0;
+    right: 0;
+    bottom: 0;
+    left: 0;
+    background: linear-gradient(360deg, #d23669 -14%, #454545 114%);
+    transform: translate3d(10px, 5px, 0) scale(0.85);
+    filter: blur(20px);
+    opacity: var(1);
+    transition: opacity 0.3s;
+    border-radius: inherit;
+  }
+
+  /* 
+  * Prevents issues when the parent creates a 
+  * stacking context. (For example, using the transform
+  * property )
+  */
+  .shadow-gradient-red::after {
+    content: "";
+    z-index: -1;
+    position: absolute;
+    top: 0;
+    right: 0;
+    bottom: 0;
+    left: 0;
+    background: inherit;
+    border-radius: inherit;
+  }
+  polygon.arrow-bottom {
+    transform: translateY(-18px);
+  }
+  .hover-btn:hover polygon.arrow-bottom {
+    transform: translateY(0);
+  }
+  polygon.arrow-top {
+    transform: translateY(18px);
+  }
+  .hover-btn:hover polygon.arrow-top {
+    transform: translateY(0);
+  }
+  @keyframes border-pulsate-light {
+    0% {
+      border-color: rgba(17, 24, 39, 0);
+    }
+    50% {
+      border-color: rgba(17, 24, 39, 1);
+    }
+
+    100% {
+      border-color: rgba(17, 24, 39, 0);
+    }
+  }
+  @keyframes border-pulsate-dark {
+    0% {
+      border-color: rgba(255, 255, 255, 0);
+    }
+    50% {
+      border-color: rgba(255, 255, 255, 1);
+    }
+    100% {
+      border-color: rgba(255, 255, 255, 0);
+    }
+  }
+  @keyframes page-loading-bar {
+    0% {
+      transform: translateX(-100%);
+    }
+    /* delay frames in order to work with Safari  */
+    5% {
+      transform: translateX(-100%);
+    }
+    20%,
+    24.5% {
+      transform: translateX(-70%);
+    }
+    30%,
+    37.5% {
+      transform: translateX(-50%);
+    }
+    45%,
+    52.5% {
+      transform: translateX(-30%);
+    }
+    60%,
+    67.5% {
+      transform: translateX(-25%);
+    }
+    75%,
+    82.5% {
+      transform: translateX(-10%);
+    }
+    90%,
+    91.5% {
+      transform: translateX(0%);
+    }
+    100% {
+      transform: translateX(100%);
+    }
+  }
+}
