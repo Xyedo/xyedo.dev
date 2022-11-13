@@ -1,11 +1,13 @@
 import { Component } from "solid-js";
 import { Motion } from "@motionone/solid";
 import ButtonWrapper from "~/components/Button";
+import SEO from "~/components/SEO";
 type Props = {};
 
-const About: Component<Props> = (props) => {
+const About: Component<Props> = () => {
   return (
     <main class="relative mx-[10vw] text-primary min-h-max">
+      <SEO title="About / Xyedo" />
       <Motion.section
         initial={{ opacity: 0, y: -25 }}
         inView={{ opacity: 1, y: 0, transition: { duration: 0.4 } }}

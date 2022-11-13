@@ -1,10 +1,10 @@
 import { Component, createEffect, onCleanup } from "solid-js";
 import { createStore } from "solid-js/store";
+import { Title } from "solid-start";
 import ButtonWrapper from "../components/Button";
 import HeroSections from "../components/section/hero-sections";
 import SEO from "../components/SEO";
 
-type Props = {};
 type InitVal = {
   loopNum: number;
   isDeleting: boolean;
@@ -56,6 +56,7 @@ const Home: Component = () => {
   });
   return (
     <main>
+      <SEO title="Home / Xyedo"/>
       <HeroSections
         title={
           <>
@@ -83,8 +84,8 @@ const Home: Component = () => {
           </>
         }
         // image={<img class="object-cover" src={HeroImage} />}
-        imageProps={{  src: "/img/rocket-boy.png" }}
-        imageSize ="large"
+        imageProps={{ src: "/img/rocket-boy.png" }}
+        imageSize="large"
         action={
           <div class="flex space-x-4">
             <ButtonWrapper href="/blog" withGradient>

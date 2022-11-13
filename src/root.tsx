@@ -9,7 +9,6 @@ import {
   Scripts,
 } from "solid-start";
 import NavBar from "./components/NavBar";
-import SEO from "./components/SEO";
 import AppContext from "./context";
 import "./style/App.css";
 import "./style/fontface.css";
@@ -18,7 +17,6 @@ import "./style/tailwind.css";
 export default function Root() {
   return (
     <Html lang="en">
-      <SEO />
       <Body>
         <ErrorBoundary>
           <Suspense>

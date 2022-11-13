@@ -15,7 +15,7 @@ type Props = {};
 
 const SEO: Component<Props & Partial<typeof defaultMeta>> = (props) => {
   const location = useLocation();
-  const localProps = mergeProps(props, defaultMeta);
+  const localProps = mergeProps(defaultMeta,props);
   return (
     <Head>
       <Title>{localProps.title}</Title>
