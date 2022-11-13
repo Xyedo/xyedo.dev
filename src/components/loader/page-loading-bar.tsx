@@ -16,8 +16,8 @@ const PageLoadingBar: Component<Props> = (props) => {
         // style={`transform: translateX(-100%); animation: ${animationValue()}; transform-origin: left; `}
         style={{
           transform: "translateX(-100%)",
-          animation: animationValue(),
           "transform-origin": "left",
+          animation: animationValue(),
         }}
       />
     </div>
