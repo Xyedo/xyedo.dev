@@ -13,8 +13,12 @@ const PageLoadingBar: Component<Props> = (props) => {
     <div class=" absolute z-50 w-full overflow-hidden pointer-events-none h-1">
       <div
         class="w-full h-full rounded-full bg-pink-alt"
-        style={`transform: translateX(-100%); animation: ${animationValue()}; transform-origin: left;`}
-        // style={{transform: "translateX(-100%)", "animation": animationValue(), "transform-origin":"left"}}
+        // style={`transform: translateX(-100%); animation: ${animationValue()}; transform-origin: left; `}
+        style={{
+          transform: "translateX(-100%)",
+          animation: animationValue(),
+          "transform-origin": "left",
+        }}
       />
     </div>
   );
