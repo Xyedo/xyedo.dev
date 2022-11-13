@@ -32,6 +32,7 @@ export const ThemeProvider: Component<Props> = (props) => {
     setTheme(systemTheme);
     localStorage.setItem(local.storageKey, systemTheme);
   };
+  
   onMount(() => {
     const val = localStorage.getItem(local.storageKey) as Theme | null;
     if (val) {

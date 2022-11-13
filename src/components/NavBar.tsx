@@ -8,13 +8,13 @@ import {
   splitProps,
   useContext,
 } from "solid-js";
-import { ThemeContext } from "../context/ThemeProvider";
+import { ThemeContext } from "~/context/ThemeProvider";
 import { BiRegularMoon, BiRegularSun } from "solid-icons/bi";
 import { FaSolidCircle } from "solid-icons/fa";
 import { TiTimes } from "solid-icons/ti";
 import { Motion } from "@motionone/solid";
 import { Portal } from "solid-js/web";
-import PageLoaderBar from "./loader/page-loading-bar";
+import PageLoaderBar from "~/components/loader/page-loading-bar";
 type Props = {};
 const LINKS = [
   { name: "Blog", to: "/blog" },
