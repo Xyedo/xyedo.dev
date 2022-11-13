@@ -53,7 +53,7 @@ const HeroSections: Component<Props> = (props) => {
       ? children(() => localProps.subtitle)
       : null;
   return (
-    <div class="relative mx-[10vw] text-primary">
+    <section class="relative mx-[10vw] text-primary">
       <div
         class="relative grid grid-cols-4 gap-x-4 md:grid-cols-8 lg:grid-cols-12 lg:gap-x-6 lg:mx-auto max-w-7xl
         lg:mb-4 h-auto pt-24 lg:min-h-[40rem] lg:pb-12"
@@ -63,7 +63,7 @@ const HeroSections: Component<Props> = (props) => {
           classList={{
             "px-10 lg:col-span-5 lg:col-start-7":
               localProps.imageSize === "medium",
-            "flex items-start justify-end pl-10 lg:col-span-6 lg:col-start-6 lg:-mt-20" :
+            "flex items-start justify-end pl-10 lg:col-span-6 lg:col-start-6 lg:-mt-20":
               localProps.imageSize === "large",
             "flex items-center justify-center lg:col-span-7 lg:col-start-6 lg:-mt-25 lg:-mr-5vw lg:px-0":
               localProps.imageSize === "giant",
@@ -71,7 +71,9 @@ const HeroSections: Component<Props> = (props) => {
         >
           <Motion.img
             {...localProps.imageProps}
-            class={"h-auto w-full object-contain" + localProps.imageProps?.class}
+            class={
+              "h-auto w-full object-contain" + localProps.imageProps?.class
+            }
             classList={{
               "max-h-50vh": localProps.imageSize === "medium",
               "max-h-75vh": localProps.imageSize === "giant",
@@ -139,7 +141,7 @@ const HeroSections: Component<Props> = (props) => {
           </Motion.div>
         </div>
       </Show>
-    </div>
+    </section>
   );
 };
 

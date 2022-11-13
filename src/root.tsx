@@ -12,10 +12,11 @@ import {
   Title,
 } from "solid-start";
 import NavBar from "./components/NavBar";
-import AppContext from "./context";
+import AppContext from "~/context";
 
 import "~/style/tailwind.css";
 import "~/style/fontface.css";
+import Spinner from "~/components/loader/spinner";
 
 export default function Root() {
   return (
@@ -28,7 +29,13 @@ export default function Root() {
         <ErrorBoundary>
           <AppContext>
             <NavBar />
-            <Suspense>
+            <Suspense
+              fallback={
+                <div class="flex items-center justify-center">
+                  <Spinner />
+                </div>
+              }
+            >
               <Routes>
                 <FileRoutes />
               </Routes>

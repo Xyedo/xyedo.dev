@@ -5,7 +5,7 @@ const defaultMeta = {
   title: "Hafid Mahdi",
   siteName: "xyedo.dev",
   description:
-    "A blog and online portfolio by Hafid Mahdi. Showcase of my projects, and some of my thoughts about being an engineers.",
+    "A blog for showing my thought and my past endeavour as an engineer",
   url: "https://xyedo.dev",
   image: "https://xyedo.dev/favicon/large-og.jpg",
   type: "website",

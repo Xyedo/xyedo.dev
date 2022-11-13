@@ -2,12 +2,13 @@ import { Component } from "solid-js";
 
 export type MDXComponent = Component;
 
-type BlogInfo = {
+export type BlogInfo = {
   title: string;
   date: string;
   banner: string;
-  description?: string;
-  categories: string[];
+  bannerCredit: string;
+  description: string;
+  categories: string;
   keyword: string[];
   published_at?: number;
   body: () => Promise<{ default: MDXComponent }>;
@@ -16,10 +17,12 @@ export const list: { [key: string]: BlogInfo } = {
   "why-learning-another-lang-matter": {
     title: "Why Learning Another Languange / Framework Matter",
     date: "21-07-2022",
-    banner: "",
+    banner:
+      "https://images.unsplash.com/photo-1571171637578-41bc2dd41cd2?ixlib=rb-4.0.3&ixid=MnwxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8&auto=format&fit=crop&w=1170&q=80",
+    bannerCredit: "https://unsplash.com/@ffstop",
     description:
       "Becoming programmer is essentially become to fulltime learning experience, and learning another languange or framework can help you to become a better programmer",
-    categories: ["learning", "development"],
+    categories: "learning",
     keyword: ["javascript", "typescript", "golang", "C#"],
     body: async () => await import("./why-learning-another-lang-matter.mdx"),
   },

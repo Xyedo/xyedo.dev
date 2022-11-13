@@ -23,16 +23,21 @@ const Article: Component = () => {
           <div class="space-y-10 px-4 lg:px-0">
             <div class="container lg:px-10">
               <div class="text-center space-y-5">
-                <img
-                  class="rounded-md mb-10 shadow-md"
-                  src={data.details.banner}
-                />
                 <h1 class="text-4xl font-semibold mt-10 text-solid-medium dark:text-solid-darkdefault">
                   {data.details.title}
                 </h1>
                 <div class="text-md"> {data.details.date}</div>
+               
+                <img
+                  class="rounded-md mb-10 shadow-md"
+                  src={data.details.banner}
+                />
+                <p>
+                  {" "}
+                  photo <a href={data.details.bannerCredit}>credit</a>
+                </p>
+                <hr class="mt-10 w-3/6 mx-auto text-primary" />
               </div>
-              <hr class="mt-10 w-3/6 mx-auto text-primary" />
               <article class="my-10 prose dark:prose-invert mx-auto dark:text-blog-dark text-blog">
                 {data.article && <data.article />}
               </article>
