@@ -1,6 +1,5 @@
 import { Component, createEffect, onCleanup } from "solid-js";
 import { createStore } from "solid-js/store";
-import { Title } from "solid-start";
 import ButtonWrapper from "../components/Button";
 import HeroSections from "../components/section/hero-sections";
 import SEO from "../components/SEO";

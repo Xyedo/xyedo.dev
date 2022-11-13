@@ -232,8 +232,7 @@ const Subscribe: Component = () => {
   );
 };
 
-
-const NavBar: Component<Props> = (props) => {
+const NavBar: Component<Props> = () => {
   const isRouting = useIsRouting();
   return (
     <header>

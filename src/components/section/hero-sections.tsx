@@ -33,10 +33,10 @@ type Props =
 //   imageSize?: "medium" | "large" | "giant";
 //   image?: JSXElement;
 // };
-const textVariant = {
-  initial: { opacity: 0, y: 25 },
-  inView: { opacity: 1, y: 0, transition: { duration: 0.5 } },
-};
+// const textVariant = {
+//   initial: { opacity: 0, y: 25 },
+//   inView: { opacity: 1, y: 0, transition: { duration: 0.5 } },
+// };
 const HeroSections: Component<Props> = (props) => {
   const localProps = mergeProps(
     { imageSize: "medium", arrowIcon: false },
