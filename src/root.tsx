@@ -11,7 +11,6 @@ import {
 import NavBar from "./components/NavBar";
 import AppContext from "./context";
 
-import "~/style/app.css";
 import "~/style/tailwind.css";
 import "~/style/fontface.css";
 
