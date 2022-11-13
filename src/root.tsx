@@ -21,8 +21,8 @@ export default function Root() {
       <Body>
         <ErrorBoundary>
           <AppContext>
-            <NavBar />
             <Suspense>
+              <NavBar />
               <Routes>
                 <FileRoutes />
               </Routes>

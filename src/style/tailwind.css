@@ -1,4 +1,5 @@
 @tailwind base;
+@tailwind components;
 @tailwind utilities;
 
 @layer base {
@@ -6,52 +7,13 @@
   body {
     @apply dark:bg-[#282C35] bg-[#f5f5f5] font-Montserrat min-h-screen;
   }
-  .underlined {
-    position: relative;
-    text-decoration: none !important;
-    white-space: nowrap;
-  }
-
-  .underlined:focus {
-    outline: none;
-    text-decoration: none !important;
-  }
-
-  .underlined:after {
-    content: "";
-    height: 2px;
-    transform: scaleX(0);
-    transition: transform 0.25s ease;
-    transform-origin: left;
-    left: 0;
-    bottom: -4px;
-    width: 100%;
-    display: block;
-    position: absolute;
-  }
-
-  .underlined:hover:after,
-  .underlined:focus:after,
-  .active.underlined:after {
-    background-color: currentColor;
-    transform: scaleX(1);
-  }
-
-  @media (prefers-reduced-motion) {
-    .underlined:after {
-      opacity: 0;
-      transition: opacity 0.25s ease;
-    }
-
-    .underlined:hover:after,
-    .underlined:focus:after,
-    .active.underlined:after {
-      opacity: 1;
-    }
+  
+  html {
+    scroll-behavior: smooth;
   }
 }
-@layer utilities {
 
+@layer utilities {
   .focus-ring {
     @apply focus:outline-none focus-within:outline-none ring-team-current ring-offset-4 ring-offset-white transition duration-300 focus-within:ring-2 focus-within:ring-team-current hover:ring-2 hover:ring-team-current focus:ring-2 focus:ring-team-current disabled:ring-0 group-hover:ring-2 group-hover:ring-team-current group-focus:ring-2 group-focus:ring-team-current dark:ring-offset-gray-900;
   }

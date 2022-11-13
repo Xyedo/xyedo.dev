@@ -1,3 +1,4 @@
+//port from next-themes
 import {
   Accessor,
   Component,
@@ -6,13 +7,15 @@ import {
   createSignal,
   JSXElement,
   mergeProps,
+  on,
   onCleanup,
   onMount,
   Setter,
 } from "solid-js";
 
-type Ctx = { theme: Accessor<Theme>; setTheme: Setter<Theme> };
 type Theme = "light" | "dark" | undefined;
+type Ctx = { theme: Accessor<Theme>; setTheme: Setter<Theme> };
+
 type Props = {
   children: JSXElement;
   storageKey?: string;
@@ -26,13 +29,14 @@ export const ThemeProvider: Component<Props> = (props) => {
   const local = mergeProps({ storageKey: "theme" }, props);
 
   const [theme, setTheme] = createSignal<Theme>(getTheme(local.storageKey));
+
   const getSystemTheme = (ev: MediaQueryListEvent | MediaQueryList) => {
     const isDark = ev.matches;
     const systemTheme = isDark ? "dark" : "light";
     setTheme(systemTheme);
     localStorage.setItem(local.storageKey, systemTheme);
   };
-  
+
   onMount(() => {
     const val = localStorage.getItem(local.storageKey) as Theme | null;
     if (val) {
@@ -51,26 +55,28 @@ export const ThemeProvider: Component<Props> = (props) => {
     });
   });
   //listen to state theme
-  createEffect(() => {
-    const root = window.document.documentElement;
-    if (theme() === "dark") {
-      root.classList.remove("light");
-      root.classList.add("dark");
-    } else if (theme() === "light") {
-      root.classList.remove("dark");
-      root.classList.add("light");
-    }
-    if (typeof theme() !== "undefined") {
-      window.localStorage.setItem(local.storageKey, theme()!);
-    }
-  });
+  createEffect(
+    on(theme, (v) => {
+      const root = window.document.documentElement;
+      if (v === "dark") {
+        root.classList.remove("light");
+        root.classList.add("dark");
+      } else if (v === "light") {
+        root.classList.remove("dark");
+        root.classList.add("light");
+      }
+      if (typeof v !== "undefined") {
+        window.localStorage.setItem(local.storageKey, v);
+      }
+    })
+  );
   return (
     <ThemeContext.Provider value={{ theme, setTheme }}>
       {props.children}
     </ThemeContext.Provider>
   );
 };
-const getTheme = (key: string, fallback?: Theme): Theme => {
+const getTheme = (key: string, fallback?: "dark" | "light"): Theme => {
   if (typeof window === "undefined") return undefined;
   let theme: Theme;
   try {
