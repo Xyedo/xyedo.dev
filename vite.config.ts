@@ -1,6 +1,7 @@
 import solid from "solid-start/vite";
 import { defineConfig } from "vite";
-
+// @ts-ignore
+import vercel from "solid-start-vercel";
 export default defineConfig({
   plugins: [
     {
@@ -13,6 +14,7 @@ export default defineConfig({
     },
     solid({
       extensions: [".mdx", ".md"],
+      adapter: vercel({ edge: false }),
     }),
   ],
 });

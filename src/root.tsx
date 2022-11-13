@@ -10,9 +10,9 @@ import {
 } from "solid-start";
 import NavBar from "./components/NavBar";
 import AppContext from "./context";
-import "./style/App.css";
-import "./style/fontface.css";
-import "./style/tailwind.css";
+import "~/style/app.css";
+import "~/style/fontface.css";
+import "~/style/tailwind.css";
 
 export default function Root() {
   return (
