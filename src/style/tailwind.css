@@ -13,14 +13,6 @@
 }
 
 @layer components {
-  .card-transform {
-    transform-origin: center;
-    transform: scale(1) translateZ(0);
-    transition: filter 200ms linear, transform 200ms linear;
-  }
-  .card-hover {
-    transform: scale(1.05) translateZ(0);
-  }
   .underlined {
     position: relative;
     text-decoration: none !important;

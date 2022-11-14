@@ -7,7 +7,7 @@ const defaultMeta = {
   description:
     "A blog for showing my thought and my past endeavour as an engineer",
   url: "https://xyedo.dev",
-  image: "https://xyedo.dev/favicon/large-og.jpg",
+  image: "https://xyedo.dev/favicon/ms-icon-310x310.png",
   type: "website",
   robots: "follow, index",
 };

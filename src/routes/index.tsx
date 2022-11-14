@@ -96,7 +96,9 @@ const Home: Component = () => {
         arrowIcon
         arrowUrl="#main-section"
       />
-      <div class="min-h-screen" id="main-section"></div>
+      <div id="main-section">
+        
+      </div>
     </main>
   );
 };

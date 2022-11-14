@@ -8,7 +8,7 @@ interface BlogCard
 export default function BlogCard(props: BlogCard) {
   return (
     <A href={`/blog/${props.id}`}>
-      <div class="border-primary border-4 hover:border-pink focus:border-pink focus:outline-none max-w-md rounded-3xl shadow-xl  p-5 box-border pb-7 m-5 flex flex-col transition ">
+      <div class="shadow-xl border-transparent hover:border-primary border-4 hover:border-pink focus:border-pink focus:outline-none max-w-md rounded-3xl  p-5 box-border pb-7 m-5 flex flex-col transition">
         <img
           class="w-full max-h-72 rounded-3xl object-cover mb-4 "
           src={props.banner}
