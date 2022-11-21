@@ -40,7 +40,7 @@ const NavLink: Component<Parameters<typeof A>["0"] & { name: string }> = (
         class="underlined font-semibold focus:outline-none block whitespace-nowrap text-lg hover:text-pink focus:text-pink"
         classList={{
           "active text-pink": Boolean(match()),
-          "text-secondary": Boolean(!match()),
+          "text-primary": Boolean(!match()),
         }}
       >
         {local.name}
@@ -175,6 +175,7 @@ type MobileMenuListProps = {
   setExpanded: (v: boolean) => void;
 };
 const MobileMenuList: Component<MobileMenuListProps> = (props) => {
+  const themeCtx = useContext(ThemeContext);
   return (
     <Show when={props.isExpanded}>
       <Portal>
@@ -191,7 +192,10 @@ const MobileMenuList: Component<MobileMenuListProps> = (props) => {
               outline-none`}
             onClick={() => props.setExpanded(false)}
           >
-            <TiTimes class="text-primary" />
+            <TiTimes
+              class="text-primary"
+              color={themeCtx?.theme() === "dark" ? "#fff" : "#000"}
+            />
           </div>
 
           <div class="text-primary">

@@ -1,5 +1,4 @@
 import { Component } from "solid-js";
-
 export type MDXComponent = Component;
 
 export type BlogInfo = {
@@ -13,6 +12,7 @@ export type BlogInfo = {
   published_at?: number;
   body: () => Promise<{ default: MDXComponent }>;
 };
+
 export const list: { [key: string]: BlogInfo } = {
   "why-learning-another-lang-matter": {
     title: "Why Learning Another Languange / Framework Matter",
@@ -25,5 +25,16 @@ export const list: { [key: string]: BlogInfo } = {
     categories: "learning",
     keyword: ["javascript", "typescript", "golang", "C#"],
     body: async () => await import("./why-learning-another-lang-matter.mdx"),
+  },
+  "uploading-file-in-gin-with-s3": {
+    title: "Uploading File in Gin With S3",
+    date: "20-11-2022",
+    banner: "",
+    bannerCredit: "",
+    description:
+      "How to upload a file using gin gonic and s3 with correct error handling and security first approach",
+    categories: "tutorial",
+    keyword: ["golang", "gin", "s3"],
+    body: async () => await import("./uploading-file-in-gin-with-s3.mdx"),
   },
 };
