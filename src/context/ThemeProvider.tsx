@@ -54,7 +54,7 @@ export const ThemeProvider: Component<Props> = (props) => {
       media.removeEventListener("change", getSystemTheme);
     });
   });
-  //listen to state theme
+  //listen to theme change
   createEffect(
     on(theme, (v) => {
       const root = window.document.documentElement;
