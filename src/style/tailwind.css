@@ -289,6 +289,9 @@
   .text-pink {
     @apply text-[#D23669] dark:text-[#FFA7C4];
   }
+  .text-pink-inverse {
+    @apply dark:text-[#D23669] text-[#FFA7C4];
+  }
   .fill-primary {
     @apply dark:fill-white fill-[#282C35];
   }

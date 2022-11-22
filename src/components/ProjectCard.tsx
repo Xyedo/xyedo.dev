@@ -1,5 +1,6 @@
 import { ProjectInfo } from "content/project/list";
 import { Component, For } from "solid-js";
+import { FaSolidArrowRightLong } from "solid-icons/fa";
 import { A } from "solid-start";
 
 interface ProjectCard extends Omit<ProjectInfo, "body"> {
@@ -7,65 +8,41 @@ interface ProjectCard extends Omit<ProjectInfo, "body"> {
 }
 const ProjectCard: Component<ProjectCard> = (props) => {
   return (
-    <A href={`/project/${props.id}`}>
-      <div
-        class={`relative w-100% h-72 mb-10 rounded-xl bg-primary border-2
-     border-pink text-lg overflow-hidden cursor-pointer shadow-xl 
-     transition hover:shadow-sm hover:-translate-y-1 before:content-[""] 
-     before:absolute before:top-0 before:right-0 before:bottom-0 
-     before:left-0 before:opacity-[0.07] before:bg-gradient-to-l 
-     even:before:bg-gradient-to-bl`}
+    <div class="box-border w-[92%] md:w-[initial] m-auto md:m-[initial]">
+      <A
+        href={`/project/${props.id}`}
+        class="group block box-border bg-secondary relative p-7 md:flex md:p-12 overflow-hidden items-center max-w-[1000px] m-auto text-primary text rounded-md mb-12 no-underline transition-all hover:shadow-lg"
       >
-        <div class="absolute top-0 right-0 bottom-0 left-0">
+        <div class="absolute top-0 right-0 uppercase z-10 text-xs border-pink rounded-md border-2 text-primary bg-primary text-primary  py-2 px-4">{props.categories}</div>
+        <div class="  w-full md:w-[35%] object-cover mr-12 rounded-md overflow-hidden shadow-xl">
           <img
-            class="absolute h-72 w-[400px] top-0 left-0 transition 
-          even:left-[initial] even:right-0 hover:scale-105 hover:rotate-1"
+            class="block w-full box-border h-36 md:h-[initial] object-cover md:object-[initial] align-middle"
             src={props.banner}
           />
-          <div
-            class={`absolute top-[7%] bottom-[7%] left-[430px] 
-          w-[calc(100%-470px) text-lg even:left-[initial] even:right-[430px]
-          before:content-[""] before:absolute before:block 
-          before:-top-[20%] before:-left-14 before:h-[140%] 
-          before:w-14 before:rotate-6 after:content-[""] 
-          after:absolute after:-top-[20%] after:h-[140%] 
-          after:w-14 after:rotate-6 even:before:hidden 
-          after:hidden after:left-[initial] after:-right-14 
-          even:after:block
-          `}
-          >
-            <h1 class="text-primary text-2xl">{props.title}</h1>
-            <div class="text-secondary">{props.categories}</div>
-            <div class="-left-1 w-12 h-1 my-2 mx-0 rounded-md transition" />
-            <p class="z-10 text-lg overflow-hidden text-ellipsis">
-              {props.description}
-            </p>
-            <div class="absolute bottom-[3%] text-sm cursor-default select-none pointer-events-none">
-              <For each={props.stacks}>
-                {(stack) => (
-                  <span
-                    class={`"inline-block bg-gray-200 dark:bg-gray-800
-             text-[#777] rounded-tl-sm rounded-tr-none rounded-br-none 
-             rounded-bl-sm leading-6 pt-0 pr-2 pb-9 pl-6 relative mr-5 
-             cursor-default select-none transition-colors before:content-[""]
-             before:absolute before:bg-current before:rounded-lg 
-             before:shadow-inner before:h-1 before:left-2 
-             before:w-1 before:top-2 after:content-[""] after:absolute 
-             after:border-b-[13px] after:border-b-transparent 
-             after:border-l-[10px] after:border-l-[#E0E0E0] 
-             after:border-t-[13px] after:border-t-transparent after:-right-3 
-             after:top-0
-             `}
-                  >
-                    {stack}
-                  </span>
-                )}
-              </For>
-            </div>
+        </div>
+        <div class=" box-border w-full mt-9 md:mt-0 md:w-[65%]">
+          <div class="box-border text-pink capitalize font-semibold text-lg md:text-xl">
+            {props.title}
+            <span
+              class={`text-xs ml-5 text-primary before:content-['/'] before:text-pink-inverse before:text-2xl before:top-auto before:relative before:mr-3`}
+            >
+              {props.date.toLocaleDateString()}
+            </span>
+          </div>
+          <div class="box-border ml-0 my-3 w-[70px] h-1 rounded-md bg-gradient-to-r from-[#D23669] to-[#FFA7C4] dark:from-[#FFA7C4] dark:to-[#D23669]" />
+          <p class="max-w-md break-words">{props.description}</p>
+          <div class="space-x-2 text-sm mt-6">
+            <span>Stacks: </span>
+            <For each={props.stacks}>
+              {(stack) => <span class="capitalize inline-block">{stack}</span>}
+            </For>
           </div>
         </div>
-      </div>
-    </A>
+        <div class="box-border h-5 w-[15%] relative text-center text-4xl left-0 transition-all group-hover:text-pink group-hover:left-7 m-auto md:m-0">
+          <FaSolidArrowRightLong />
+        </div>
+      </A>
+    </div>
   );
 };
 export default ProjectCard;
