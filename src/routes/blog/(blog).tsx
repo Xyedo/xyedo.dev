@@ -49,6 +49,7 @@ const Blog: Component<Props> = () => {
           <For each={data.articles}>
             {([id, article]) => (
               <BlogCard
+                categories={article.categories}
                 href={`/blog/${id}`}
                 banner={article.banner}
                 date={article.date}

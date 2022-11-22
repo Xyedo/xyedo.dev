@@ -1,19 +1,27 @@
 import { BlogInfo } from "content/blog/list";
 import { A } from "solid-start";
 
-interface BlogCard
-  extends Omit<BlogInfo, "body" | "bannerCredit" | "categories" | "keyword"> {
+interface BlogCard extends Omit<BlogInfo, "body" | "bannerCredit" | "keyword"> {
   href: string;
 }
 export default function BlogCard(props: BlogCard) {
   return (
     <A href={props.href}>
-      <div class="bg-secondary shadow-xl border-transparent hover:scale-[.98] hover:border-primary border-4 hover:border-pink focus:border-pink focus:outline-none max-w-md min-h-[600px] rounded-3xl  p-5 box-border pb-7 my-5 flex flex-col transition">
-        <img
-          class="w-full max-h-72 rounded-3xl object-cover mb-4 my-auto"
-          src={props.banner}
-          alt="banner image"
-        />
+      <div
+        class="bg-secondary shadow-xl border-transparent relative hover:scale-[.98] hover:border-primary 
+      border-4 hover:border-pink focus:border-pink focus:outline-none max-w-md min-h-[600px] 
+      rounded-3xl  p-5 box-border pb-7 my-5 flex flex-col transition"
+      >
+        <div class="relative">
+          <img
+            class="w-full max-h-72 rounded-3xl object-cover mb-4 my-auto"
+            src={props.banner}
+            alt="banner image"
+          />
+          <div class="bg-primary bottom-4 left-0 py-1 px-3 absolute z-10 bg-pink border-pink border-2 rounded-sm uppercase text-inverse font-bold ">
+            {props.categories}
+          </div>
+        </div>
         <div class="my-auto">
           <time
             class="block font-light text-sm uppercase text-secondary mb-1 sm:mb-2"

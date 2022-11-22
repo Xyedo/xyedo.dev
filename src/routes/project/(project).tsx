@@ -4,7 +4,6 @@ import HeroSections from "../../components/section/hero-sections";
 import ButtonWrapper from "~/components/Button";
 import { projectList } from "~/../content/project/list";
 import { useRouteData } from "solid-start";
-import BlogCard from "~/components/BlogCard";
 import ProjectCard from "~/components/ProjectCard";
 type Props = {};
 export function routeData() {
@@ -40,14 +39,13 @@ const Project: Component<Props> = () => {
         arrowUrl="#curated"
       />
       <section class="mx-[10vw]">
-        <div
-          class="flex flex-col sm:flex-row sm:flex-wrap sm:items-center sm:justify-between"
-          id="curated"
-        >
+        <div class="py-24 px-0" id="curated">
           <For each={data.articles}>
             {([id, article]) => (
-              <BlogCard
-                href={`/project/${id}`}
+              <ProjectCard
+                categories={article.categories}
+                stacks={article.stacks}
+                id={id}
                 banner={article.banner}
                 date={article.date}
                 title={article.title}
