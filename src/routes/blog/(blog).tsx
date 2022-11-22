@@ -2,7 +2,7 @@ import { Component, For } from "solid-js";
 import { useRouteData } from "solid-start";
 import ButtonWrapper from "~/components/Button";
 import HeroSections from "~/components/section/hero-sections";
-import { list } from "~/../content/blog/list";
+import { blogList } from "~/../content/blog/list";
 import SEO from "~/components/SEO";
 import BlogCard from "~/components/BlogCard";
 type Props = {};
@@ -10,7 +10,10 @@ type Props = {};
 export function routeData() {
   return {
     get articles() {
-      return list;
+      return Object.entries(blogList).sort(
+        (a, b) =>
+          b[1].date.getUTCMilliseconds() - a[1].date.getUTCMilliseconds()
+      );
     },
   };
 }
@@ -18,11 +21,6 @@ export function routeData() {
 const Blog: Component<Props> = () => {
   const data = useRouteData<typeof routeData>();
 
-  const sortedArticles = Object.entries(data.articles).sort(
-    (entry1, entry2) =>
-      new Date(entry2[1].date).getUTCMilliseconds() -
-      new Date(entry1[1].date).getUTCMilliseconds()
-  );
   return (
     <main>
       <SEO title="Blog / Xyedo" />
@@ -44,11 +42,14 @@ const Blog: Component<Props> = () => {
         arrowUrl="#curated-blogs"
       />
       <section class="mx-[10vw]">
-        <div class="flex flex-col sm:flex-row" id="curated-blogs">
-          <For each={sortedArticles}>
+        <div
+          class="flex flex-col sm:flex-row sm:flex-wrap sm:items-center sm:justify-between"
+          id="curated-blogs"
+        >
+          <For each={data.articles}>
             {([id, article]) => (
               <BlogCard
-                id={id}
+                href={`/blog/${id}`}
                 banner={article.banner}
                 date={article.date}
                 title={article.title}

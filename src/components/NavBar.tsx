@@ -6,15 +6,14 @@ import {
   mergeProps,
   Show,
   splitProps,
-  useContext,
 } from "solid-js";
-import { ThemeContext } from "~/context/ThemeProvider";
 import { BiRegularMoon, BiRegularSun } from "solid-icons/bi";
 import { FaSolidCircle } from "solid-icons/fa";
 import { TiTimes } from "solid-icons/ti";
 import { Motion } from "@motionone/solid";
 import { Portal } from "solid-js/web";
 import PageLoaderBar from "~/components/loader/page-loading-bar";
+import { useThemeCtx } from "~/context/ThemeProvider";
 type Props = {};
 const LINKS = [
   { name: "Blog", to: "/blog" },
@@ -40,7 +39,7 @@ const NavLink: Component<Parameters<typeof A>["0"] & { name: string }> = (
         class="underlined font-semibold focus:outline-none block whitespace-nowrap text-lg hover:text-pink focus:text-pink"
         classList={{
           "active text-pink": Boolean(match()),
-          "text-secondary": Boolean(!match()),
+          "text-primary": Boolean(!match()),
         }}
       >
         {local.name}
@@ -53,7 +52,7 @@ const DarkModeToggle: Component<{
   variant?: "icon" | "labelled";
 }> = (props) => {
   const merged = mergeProps({ variant: "icon" }, props);
-  const ctx = useContext(ThemeContext);
+  const ctx = useThemeCtx();
 
   return (
     <button
@@ -175,6 +174,7 @@ type MobileMenuListProps = {
   setExpanded: (v: boolean) => void;
 };
 const MobileMenuList: Component<MobileMenuListProps> = (props) => {
+  const themeCtx = useThemeCtx();
   return (
     <Show when={props.isExpanded}>
       <Portal>
@@ -191,7 +191,10 @@ const MobileMenuList: Component<MobileMenuListProps> = (props) => {
               outline-none`}
             onClick={() => props.setExpanded(false)}
           >
-            <TiTimes class="text-primary" />
+            <TiTimes
+              class="text-primary"
+              color={themeCtx?.theme() === "dark" ? "#fff" : "#000"}
+            />
           </div>
 
           <div class="text-primary">
@@ -243,7 +246,7 @@ const NavBar: Component<Props> = () => {
               href="/"
               class="text-primary underlined focus:outline-none block whitespace-nowrap text-2xl font-medium transition"
             >
-              <h1 class="font-semibold">Xyedo</h1>
+              <h1 class="font-semibold text-primary">Xyedo</h1>
             </A>
           </div>
 

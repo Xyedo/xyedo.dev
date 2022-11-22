@@ -1,0 +1,52 @@
+[ITSfess](https://itsfess.vercel.app) is automated twitter [menfess](https://twitter.com/its_fess) created with python backend and nextjs frontend that become a platform to institute technology sepuluj nopember student giving out their thought, ask for help and finding friends. as this created, we have 16.5K follower and active 1k users in the platform
+
+The feature that i proud of is
+
+# The backend
+
+The backend that we've built is using python and tweepy library for handling free twitter API.
+
+We're not using the the webhook twitter API because its only for enterprise twitter API.
+
+## Database
+
+Database that we have built is using noSQL firebase firestore database because is just a simple user and many messages
+
+# The Frontend
+
+We are using next-js because its just building a website is so simple with react and its ecosystem and using next-auth for admin login.
+
+## Home Page
+
+The firebase client, is read only for live messages (yes its live, whenever the twit has been sent, its getting push to the itsfess-web) and we hidded the user if its not the admin.
+
+## Admin Page
+
+If user loggin, by that means, our admin is logged in, the user is shown and we give the option to report the user and delete the tweet
+
+## Library
+
+Honored library that we use:
+
+<ul>
+  <li>
+    <a href="https://www.algolia.com/">AlgoliaSearch</a> : For fulltext based
+    searching in tweet
+  </li>
+  <li>
+    <a href="https://final-form.org/react">Final-form</a> : for handling complex
+    form
+  </li>
+  <li>
+    <a href="https://next-auth.js.org/">Next-Auth</a> : for handling
+    authentication and authorization
+  </li>
+  <li>
+    <a href="https://github.com/ankeetmaini/react-infinite-scroll-component">react-infinite-scroll-component</a>
+    : for handling lazy load the tweet whenever the end-user scroll
+  </li>
+  <li>
+    <a href="https://www.emailjs.com/">EmailJs</a> : For handling the user email
+    form
+  </li>
+</ul>

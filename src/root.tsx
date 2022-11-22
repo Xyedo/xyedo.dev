@@ -17,6 +17,8 @@ import AppContext from "~/context";
 
 import "~/style/tailwind.css";
 import "~/style/fontface.css";
+import "~/style/hljs.css";
+import "~/style/mdx.css";
 import Spinner from "~/components/loader/spinner";
 
 function CustomHead() {

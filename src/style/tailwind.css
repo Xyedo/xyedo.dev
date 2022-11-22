@@ -3,12 +3,20 @@
 @tailwind utilities;
 
 @layer base {
+  html {
+    scroll-behavior: smooth;
+  }
   html,
   body {
     @apply dark:bg-[#282C35] bg-[#f5f5f5] font-Montserrat min-h-screen;
   }
-  html {
-    scroll-behavior: smooth;
+  h1,
+  h2,
+  h3,
+  h4,
+  h5,
+  h6 {
+    @apply font-bold font-Montserrat;
   }
 }
 
@@ -227,7 +235,7 @@
 
 @layer utilities {
   .focus-ring {
-    @apply focus:outline-none focus-within:outline-none ring-team-current ring-offset-4 ring-offset-white transition duration-300 focus-within:ring-2 focus-within:ring-team-current hover:ring-2 hover:ring-team-current focus:ring-2 focus:ring-team-current disabled:ring-0 group-hover:ring-2 group-hover:ring-team-current group-focus:ring-2 group-focus:ring-team-current dark:ring-offset-gray-900;
+    @apply focus:outline-none focus-within:outline-none ring-offset-4 ring-offset-white transition duration-300 focus-within:ring-2 focus-within:ring-team-current hover:ring-2 hover:ring-team-current focus:ring-2 focus:ring-team-current disabled:ring-0 group-hover:ring-2 group-hover:ring-team-current group-focus:ring-2 group-focus:ring-team-current dark:ring-offset-gray-900;
   }
 
   .focus-ring.danger {
@@ -245,7 +253,7 @@
   }
 
   .bg-secondary {
-    @apply bg-gray-100 dark:bg-gray-800;
+    @apply bg-gray-100 dark:bg-[#2A313C];
   }
 
   .bg-alt {

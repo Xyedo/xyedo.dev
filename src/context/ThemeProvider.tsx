@@ -11,6 +11,7 @@ import {
   onCleanup,
   onMount,
   Setter,
+  useContext,
 } from "solid-js";
 
 type Theme = "light" | "dark" | undefined;
@@ -23,8 +24,15 @@ type Props = {
 
 const MEDIA = "(prefers-color-scheme: dark)";
 
-export const ThemeContext = createContext<Ctx>();
-
+const ThemeContext = createContext<Ctx>();
+export function useThemeCtx() {
+  const ctx = useContext(ThemeContext);
+  if (!ctx) {
+    console.error("Should use this inside a ThemeProvider Component");
+    return;
+  }
+  return ctx;
+}
 export const ThemeProvider: Component<Props> = (props) => {
   const local = mergeProps({ storageKey: "theme" }, props);
 
@@ -54,7 +62,7 @@ export const ThemeProvider: Component<Props> = (props) => {
       media.removeEventListener("change", getSystemTheme);
     });
   });
-  //listen to state theme
+  //listen to theme change
   createEffect(
     on(theme, (v) => {
       const root = window.document.documentElement;

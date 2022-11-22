@@ -1,0 +1,298 @@
+There is a lot of tutorial on how to upload a file in go, but not with the proper error handling, (that i know of, off course). but today im gonna show you how to upload a file in go using gin-gonic web framework and aws s3
+
+in this tutorial, we dont create the initial boiler plate to handle the routes, i assume you guys know, and if you dont, please check another tutorial
+
+# Upload Using AWS-SDK-V2
+
+At first, lets create an uploadService class with aws-s3 that gonna handle the upload file, we're using the upload manager to handle big file because upload manager makes file into chunks and each of the chunk get uploaded using goroutine
+
+## Create AWS-S3 Initialization
+
+you need to download and aws-sdk-go-v2 and put it in your project, you can change it by using plain context.TODO() if you dont wanna have a timeout
+
+```go
+import (
+  "github.com/aws/aws-sdk-go-v2/config"
+  "github.com/aws/aws-sdk-go-v2/feature/s3/manager"
+  "github.com/aws/aws-sdk-go-v2/service/s3"
+)
+func NewS3() *uploadSvc {
+  ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
+	defer cancel()
+	cfg, err := config.LoadDefaultConfig(ctx, config.WithRegion("YOURREGION"))
+	if err != nil {
+		log.Panicln(err) //should not happen, if happen, then, initialization failes
+	}
+	client := s3.NewFromConfig(cfg)
+	return &attachment{
+		uploader: manager.NewUploader(client, func(u *manager.Uploader) {
+			u.PartSize = 10 << 20 //the file is chunked by 10MiB
+		})
+	}
+}
+
+type uploadSvc {
+  uploader *manager.Uploader
+}
+
+```
+
+## Create AWS-S3 UploadHandler
+
+uploadBlob takes two parameter, first file that have io.Reader interface, so almost everything can be uploaded, os.File, multipart.File, and etc.
+the second paramater is a struct that handle the statistics of the file
+
+```go
+type Uploader struct {
+  //file length
+	Length      int64
+  //file content-type
+	ContentType string
+  //in what folder in the aws-s3 bucket we need to upload
+	Prefix      string
+  //the file extension
+	Ext         string
+}
+
+func (a *attachment) UploadBlob(file io.Reader, attach Uploader) (string, error) {
+	//TODO: better error handling
+	key := attach.Prefix + "/" + util.RandomUUID() + attach.Ext
+
+	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
+	defer cancel()
+	_, err := a.uploader.Upload(ctx, &s3.PutObjectInput{
+		Bucket:        aws.String(YOUR_BUCKET_NAME),
+		Key:           aws.String(key),
+		Body:          file,
+		ContentLength: attach.Length,
+		ContentType:   aws.String(attach.ContentType),
+	})
+	if err != nil {
+		return "", err
+	}
+	return key, nil
+}
+```
+
+and thats it, we returning the key, so if you have the resizing in your aws-s3 that handle resizing or transcoding, you just need to change the prefix,
+for example, your code is uploading the user image profile and your s3 and aws-lambda resize it for thumbnails and upload it again at prefix profile-picture-resized,
+you can just added the prefix of resized
+
+```go
+import (
+  "path/filepath"
+)
+validKey := filepath.Base(key)
+resizedImg := "profile-picture-resized/" + validKey
+
+```
+
+# Create REST-API helper function
+
+before make the REST API Handler, we need to have an helper function that know nothing about the implementation details,
+such as what is the valid mime types, in what folder in s3 we need this file to upload and we use the interface attachmentManager for the upload for hiding the implementation details and testing purposes
+
+in this helper function we need give our best dx for error handling
+
+```go
+
+func uploadFile(c *gin.Context, uploader attachmentManager, validMimeTypes []string, prefix string) string {
+	fileHeader, err := c.FormFile("file")
+	if err != nil {
+		if errors.Is(err, http.ErrNotMultipart) || errors.Is(err, http.ErrMissingBoundary) {
+			errBadRequestResp(c, "content-Type header is not valid") //your custom handler for Bad Request
+			return ""
+		}
+		if errors.Is(err, http.ErrMissingFile) {
+			errBadRequestResp(c, "request did not contain a file")
+			return ""
+		}
+		if errors.Is(err, multipart.ErrMessageTooLarge) {
+			c.AbortWithStatusJSON(http.StatusRequestEntityTooLarge, gin.H{
+				"status":  "fail",
+				"message": "max byte to upload is 8mB",
+			})
+			return ""
+		}
+		errServerResp(c, err)
+		return ""
+	}
+
+...
+```
+
+and for security purposes, we cant rely on the fileHeader.filename to know what its mimeType is, we need to sniff a little bit (512 bit to be exact) with http.DetectContentType.
+Because the fileHeader.Open() return an multipart.File that have io.Reader interface, we can read it and copying it to the buffer.
+io.Reader interface is reading in streaming of bytes, so we cant go back after we read it. but fortunately the multipart.File also implement an io.Seeker interface,
+so we can go offset the io.Reader byte back to zero
+
+```go
+...
+  file, err := fileHeader.Open()
+	if err != nil {
+		errServerResp(c, err)
+		return ""
+	}
+	defer file.Close()
+
+	buff := make([]byte, 512)
+	_, err = file.Read(buff)
+	if err != nil {
+		errServerResp(c, err)
+		return ""
+	}
+	_, err = file.Seek(0, io.SeekStart)
+	if err != nil {
+		errServerResp(c, err)
+		return ""
+	}
+
+	var isValidType bool
+	contentType := http.DetectContentType(buff)
+	for _, validMimeType := range validMimeTypes {
+		if contentType == validMimeType {
+			isValidType = true
+			break
+		}
+	}
+	if !isValidType {
+		errUnprocessableEntityResp(c, "not valid mime-type")
+		return ""
+	}
+	key, err := uploader.UploadBlob(file, domain.Uploader{
+		Length:      fileHeader.Size,
+		ContentType: contentType,
+		Prefix:      prefix,
+		Ext:         filepath.Ext(fileHeader.Filename),
+	})
+	if err != nil {
+		errServerResp(c, err)
+		return ""
+	}
+	return key
+}
+
+
+```
+
+So if there is no error, the string is not empty.
+
+# Uploading an image using REST-API
+
+After we create the helper function, we can go to the our implementation detail about what file are we gonna upload,
+in this tutorial we are gonna upload an image
+
+```go
+func (u *user) uploadImageHandler(c *gin.Context) {
+	var validImageTypes = []string{
+		"image/avif",
+		"image/jpeg",
+		"image/png",
+		"image/webp",
+		"image/svg+xml",
+	}
+	key := uploadFile(c, u.attachmentSvc, validImageTypes, "image")
+	if key == "" {
+		return
+	}
+
+	c.JSON(http.StatusOK, gin.H{
+		"status":  "success",
+		"message": "image uploaded",
+		"data": map[string]any{
+			"refKey": map[string]any{
+				"id": key,
+			},
+		},
+	})
+}
+
+```
+
+we can easily extend it, for example, we upload the profile picture that belong to the user
+
+```go
+func (u *user) putUserImageProfile(c *gin.Context) {
+	userId := c.GetString("userId") //this from user-middleware that check if its authorized or not
+	userDb, err := u.userService.GetUserById(userId)
+	if err != nil {
+		if errors.Is(err, domain.ErrResourceNotFound) {
+			errNotFoundResp(c, "id not found")
+			return
+		}
+		if errors.Is(err, domain.ErrTooLongAccesingDB) {
+			errResourceConflictResp(c)
+			return
+		}
+		errServerResp(c, err)
+		return
+	}
+	var validImageTypes = []string{
+		"image/avif",
+		"image/jpeg",
+		"image/png",
+		"image/webp",
+		"image/svg+xml",
+	}
+	key := uploadFile(c, u.attachmentSvc, validImageTypes, "profile-picture")
+	if key == "" {
+		return
+	}
+	newProfPic := domain.ProfilePicture{ //attach it to the user
+		UserId:      userDb.ID,
+		PictureLink: key,
+	}
+	id, err := u.userService.CreateNewProfilePic(newProfPic)
+	if err != nil {
+		if errors.Is(err, domain.ErrResourceNotFound) {
+			errNotFoundResp(c, "users.Id not found!")
+			return
+		}
+		if errors.Is(err, domain.ErrTooLongAccesingDB) {
+			errResourceConflictResp(c)
+			return
+		}
+		errServerResp(c, err)
+		return
+	}
+	c.JSON(http.StatusOK, gin.H{
+		"status":  "success",
+		"message": "user profile-picture uploaded",
+		"data": map[string]any{
+			"profilePicture": map[string]any{
+				"id": id,
+			},
+		},
+	})
+}
+
+```
+
+Thats it, for wiring it up your user controller and aws s3 manager that we have built, we need the main.go
+
+```go
+s3Svc := NewS3()
+userCtrlr := user.New(s3Svc, anotherSvc)
+r := gin.New()
+r.MaxMultipartMemory = 8 << 20
+v1 := r.Group("/api/v1")
+//custom authorization and authentication user
+auth := v1.Group("/users/:userId", validateUser(token.Tokenizer)) 
+{
+  auth.PUT("/profile-picture", userCtrlr.putUserImageProfile)
+}
+r.NoMethod(noMethod)
+r.NoRoute(noFound)
+srv := &http.Server{
+
+  Addr:         fmt.Sprintf("0.0.0.0:%d", port),
+  Handler:      r,
+  IdleTimeout:  time.Minute,
+  ReadTimeout:  10 * time.Second,
+  WriteTimeout: 30 * time.Second,
+}
+err := srv.ListenAndServe()
+
+```
+
+Thats it! hope you guys understand and keep learning
