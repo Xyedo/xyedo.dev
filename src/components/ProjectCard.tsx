@@ -14,7 +14,7 @@ const ProjectCard: Component<ProjectCard> = (props) => {
         class="group block box-border bg-secondary relative p-7 md:flex md:p-12 overflow-hidden items-center max-w-[1000px] m-auto text-primary text rounded-md mb-12 no-underline transition-all hover:shadow-lg"
       >
         <div class="absolute top-0 right-0 uppercase z-10 text-xs border-pink rounded-md border-2 text-primary bg-primary text-primary  py-2 px-4">{props.categories}</div>
-        <div class="  w-full md:w-[35%] object-cover mr-12 rounded-md overflow-hidden shadow-xl">
+        <div class="w-full mt-4 md:my-0 md:w-[35%] object-cover mr-12 rounded-md overflow-hidden shadow-xl">
           <img
             class="block w-full box-border h-36 md:h-[initial] object-cover md:object-[initial] align-middle"
             src={props.banner}
@@ -38,7 +38,7 @@ const ProjectCard: Component<ProjectCard> = (props) => {
             </For>
           </div>
         </div>
-        <div class="box-border h-5 w-[15%] relative text-center text-4xl left-0 transition-all group-hover:text-pink group-hover:left-7 m-auto md:m-0">
+        <div class="box-border hidden md:block h-5 w-[15%] relative text-center text-4xl left-0 transition-all group-hover:text-pink group-hover:left-7 m-auto md:m-0">
           <FaSolidArrowRightLong />
         </div>
       </A>
