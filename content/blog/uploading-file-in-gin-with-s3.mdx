@@ -214,7 +214,7 @@ we can easily extend it, for example, we upload the profile picture that belong 
 ```go
 func (u *user) putUserImageProfile(c *gin.Context) {
 	userId := c.GetString("userId") //this from user-middleware that check if its authorized or not
-	userDb, err := u.userService.GetUserById(userId) 
+	userDb, err := u.userService.GetUserById(userId)
 	if err != nil {
 		if errors.Is(err, domain.ErrResourceNotFound) {
 			errNotFoundResp(c, "id not found")
@@ -267,4 +267,32 @@ func (u *user) putUserImageProfile(c *gin.Context) {
 }
 
 ```
-Thats it, hopefully, you guys understand it! thanks for reading
+
+Thats it, for wiring it up your user controller and aws s3 manager that we have built, we need the main.go
+
+```go
+s3Svc := NewS3()
+userCtrlr := user.New(s3Svc, anotherSvc)
+r := gin.New()
+r.MaxMultipartMemory = 8 << 20
+v1 := r.Group("/api/v1")
+//custom authorization and authentication user
+auth := v1.Group("/users/:userId", validateUser(token.Tokenizer)) 
+{
+  auth.PUT("/profile-picture", userCtrlr.putUserImageProfile)
+}
+r.NoMethod(noMethod)
+r.NoRoute(noFound)
+srv := &http.Server{
+
+  Addr:         fmt.Sprintf("0.0.0.0:%d", port),
+  Handler:      r,
+  IdleTimeout:  time.Minute,
+  ReadTimeout:  10 * time.Second,
+  WriteTimeout: 30 * time.Second,
+}
+err := srv.ListenAndServe()
+
+```
+
+Thats it! hope you guys understand and keep learning

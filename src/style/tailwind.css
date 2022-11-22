@@ -3,12 +3,12 @@
 @tailwind utilities;
 
 @layer base {
+  html {
+    scroll-behavior: smooth;
+  }
   html,
   body {
     @apply dark:bg-[#282C35] bg-[#f5f5f5] font-Montserrat min-h-screen;
-  }
-  html {
-    scroll-behavior: smooth;
   }
 }
 

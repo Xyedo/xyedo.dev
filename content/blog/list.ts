@@ -1,22 +1,21 @@
-import { Component } from "solid-js";
-export type MDXComponent = Component;
+import { MDXDoc } from "~/types";
 
 export type BlogInfo = {
   title: string;
-  date: string;
+  date: Date;
   banner: string;
   bannerCredit: string;
   description: string;
   categories: string;
   keyword: string[];
   published_at?: number;
-  body: () => Promise<{ default: MDXComponent }>;
+  body: () => Promise<MDXDoc>;
 };
 
 export const list: { [key: string]: BlogInfo } = {
   "why-learning-another-lang-matter": {
     title: "Why Learning Another Languange / Framework Matter",
-    date: "21-07-2022",
+    date: new Date(2022, 6, 21),
     banner:
       "https://images.unsplash.com/photo-1571171637578-41bc2dd41cd2?ixlib=rb-4.0.3&ixid=MnwxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8&auto=format&fit=crop&w=1170&q=80",
     bannerCredit: "https://unsplash.com/@ffstop",
@@ -28,9 +27,10 @@ export const list: { [key: string]: BlogInfo } = {
   },
   "uploading-file-in-gin-with-s3": {
     title: "Uploading File in Gin With S3",
-    date: "20-11-2022",
-    banner: "",
-    bannerCredit: "",
+    date: new Date(2022, 10, 20),
+    banner:
+      "https://images.unsplash.com/photo-1575936123452-b67c3203c357?ixlib=rb-4.0.3&ixid=MnwxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8&auto=format&fit=crop&w=1170&q=80",
+    bannerCredit: "https://unsplash.com/@joshuahanson43",
     description:
       "How to upload a file using gin gonic and s3 with correct error handling and security first approach",
     categories: "tutorial",
