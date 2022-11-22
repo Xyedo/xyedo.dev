@@ -1,8 +1,8 @@
-export interface Section {
+export type Section = {
   depth: string;
   value: string;
   children?: Section[];
-}
+};
 export interface MDXDoc {
   toc: Section[];
   readingTime: {

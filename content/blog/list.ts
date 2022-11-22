@@ -12,7 +12,7 @@ export type BlogInfo = {
   body: () => Promise<MDXDoc>;
 };
 
-export const list: { [key: string]: BlogInfo } = {
+export const blogList: { [key: string]: BlogInfo } = {
   "why-learning-another-lang-matter": {
     title: "Why Learning Another Languange / Framework Matter",
     date: new Date(2022, 6, 21),

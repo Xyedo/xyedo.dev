@@ -12,11 +12,11 @@ export type ProjectInfo = {
   body: () => Promise<MDXDoc>;
 };
 
-export const list: { [key: string]: ProjectInfo } = {
+export const projectList: { [key: string]: ProjectInfo } = {
   itsfess: {
-    title: "Menfess Bot ITSFess and website like twitter",
+    title: "Menfess Bot ITSFess and Website like twitter",
     categories: "web",
-    date: new Date("21-11-2022"),
+    date: new Date(2022,10, 21),
     banner: "/img/itsfess.jpg",
     description:
       "Menfess Bot ITSFess using python and website like twitter using next-js",
@@ -36,13 +36,13 @@ export const list: { [key: string]: ProjectInfo } = {
       "building self balancing Robot using PID method on arduino and elevate it using stm32",
     categories: "electronics",
     date: new Date(2021, 0, 13),
-    banner: "/public/img/self-balancing-robot.jpg",
+    banner: "/img/self-balancing-robot.jpg",
     stacks: ["arduino", "c"],
     published_at: new Date(2021, 0, 13),
     body: async () => await import("./self-balancing-robot.mdx"),
   },
   findfit: {
-    title: "findfit: sport venues that we can rent",
+    title: "FindFit: Sport Venues that We Can Rent",
     description: "creating minimum viable product of findfit mobile app",
     categories: "mobile",
     banner: "/img/findfit.jpg",
@@ -51,7 +51,7 @@ export const list: { [key: string]: ProjectInfo } = {
     body: async () => await import("./findfit.mdx"),
   },
   "medium-alike-blog": {
-    title: "Medium alike Blog",
+    title: "Medium Alike Blog",
     description: "Building Medium like blog",
     categories: "web",
     banner: "/img/mediuma-like.jpg",
@@ -63,7 +63,7 @@ export const list: { [key: string]: ProjectInfo } = {
     title: "Molinav",
     description: "Molinav - Electric Motor companion mobile app",
     categories: "mobile",
-    banner: "/img/molinav",
+    banner: "/img/molinav.jpg",
     date: new Date(2022, 0, 31),
     stacks: ["react-native", "typescript", "golang", "tensorflow"],
     body: async () => await import("./molinav.mdx"),
@@ -85,7 +85,7 @@ export const list: { [key: string]: ProjectInfo } = {
     description:
       "Snippetbox is to snippet code, or whatever text you wanna snip",
     categories: "api",
-    banner: "https://github.com/Xyedo/snippetbox/blob/main/image/first.jpg",
+    banner: "https://github.com/Xyedo/snippetbox/blob/main/image/first.jpg?raw=true",
     date: new Date(2022, 6, 4),
     stacks: ["golang", "mySQL"],
     body: async () => await import("./snippetbox.mdx"),
@@ -96,7 +96,7 @@ export const list: { [key: string]: ProjectInfo } = {
       "locker using RFID scanner or keypad and OLED screen and Using SMS as Notification and Solenoid as a Lock",
     categories: "electronics",
     banner:
-      "https://github.com/Xyedo/locker-using-RFID/blob/main/assets/built.jpg",
+      "https://github.com/Xyedo/locker-using-RFID/blob/main/assets/built.jpg?raw=true",
     date: new Date(2022, 7, 26),
     stacks: ["arduino", "c++"],
     body: async () => await import("./locker-using-rfid.mdx"),
@@ -106,7 +106,7 @@ export const list: { [key: string]: ProjectInfo } = {
     description:
       "Subscription Service API and creating on demand pdf using golang concurency",
     categories: "api",
-    banner: "/img/subscription-api",
+    banner: "/img/subscription-api.jpg",
     date: new Date(2022, 7, 31),
     stacks: ["golang", "mailhog", "redis", "postgreSQL"],
     body: async () => await import("./subscription-api.mdx"),

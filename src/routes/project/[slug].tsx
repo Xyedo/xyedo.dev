@@ -1,18 +1,17 @@
-import { blogList } from "~/../content/blog/list";
+import { projectList } from "~/../content/project/list";
 import { createResource, Component, Show } from "solid-js";
-
 import { useRouteData } from "solid-start";
 import SEO from "~/components/SEO";
-import createScrollSpy from "~/hooks/scroll";
 import TableOfContent from "~/components/section/toc";
+import createScrollSpy from "~/hooks/scroll";
 
 export function routeData({ params }: any) {
   const [article] = createResource(async () => {
-    return await blogList[params.slug].body();
+    return await projectList[params.slug].body();
   });
   return {
     get details() {
-      return blogList[params.slug];
+      return projectList[params.slug];
     },
     get article() {
       return article;
@@ -20,11 +19,11 @@ export function routeData({ params }: any) {
   };
 }
 
-const Article: Component = () => {
+const Project: Component = () => {
   const data = useRouteData<typeof routeData>();
   const sections = () => data.article()?.toc;
   const readingTime = () => data.article()?.readingTime;
-  const blog = () => data.article()?.default;
+  const project = () => data.article()?.default;
   const currHeading = createScrollSpy(sections);
   return (
     <>
@@ -49,12 +48,10 @@ const Article: Component = () => {
                   </Show>
                   <p> {data.details.date.toLocaleDateString()}</p>
                 </span>
-                
-                  <img
-                    class="rounded-md mb-10 shadow-md container object-cover"
-                    src={data.details.banner}
-                  />
-                
+                <img
+                  class="rounded-md mb-10 shadow-md container mx-auto max-h-[640px] w-auto object-contain"
+                  src={data.details.banner}
+                />
                 <p class="text-right">
                   {" "}
                   photo{" "}
@@ -66,7 +63,7 @@ const Article: Component = () => {
               </div>
               <div class="lg:grid lg:grid-cols-12 lg:mx-[5vw]">
                 <article class="lg:col-span-10 my-10 prose dark:prose-invert dark:text-blog-dark text-blog">
-                  <Show when={blog()}>{blog()!}</Show>
+                  <Show when={project()}>{project()!}</Show>
                 </article>
                 <aside class="hidden lg:block lg:col-start-11 lg:col-span-full my-10 text-primary text-lg">
                   <div class="sticky top-36">
@@ -86,4 +83,4 @@ const Article: Component = () => {
     </>
   );
 };
-export default Article;
+export default Project;
