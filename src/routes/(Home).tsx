@@ -132,7 +132,7 @@ const Home: Component = () => {
                   banner={blog.banner}
                   categories={blog.categories}
                   date={blog.date}
-                  href={id}
+                  id={id}
                   description={blog.description}
                   title={blog.title}
                 />

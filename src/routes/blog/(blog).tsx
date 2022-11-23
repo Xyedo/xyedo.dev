@@ -50,7 +50,7 @@ const Blog: Component<Props> = () => {
             {([id, article]) => (
               <BlogCard
                 categories={article.categories}
-                href={`/blog/${id}`}
+                id={id}
                 banner={article.banner}
                 date={article.date}
                 title={article.title}
