@@ -21,7 +21,7 @@ const ProjectCard: Component<Props> = (props) => {
         </div>
         <div class="w-full mt-4 md:my-0 md:w-[35%] object-cover mr-12 rounded-md overflow-hidden shadow-xl">
           <img
-            class="block w-full box-border h-36 md:h-[initial] object-cover md:object-[initial] align-middle"
+            class="block w-full box-border h-36 md:h-52 object-cover md:object-[initial] align-middle"
             src={props.banner}
           />
         </div>
