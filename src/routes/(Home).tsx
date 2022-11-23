@@ -125,7 +125,7 @@ const Home: Component = () => {
           <h1 class="text-center mx-4 my-8 bg-red-grad dark:bg-pink-grad transition-colors duration-200 ease-linear font-black text-pink text-xl md:text-3xl lg:text-5xl pb-2">
             Latest Blog
           </h1>
-          <section class="flex flex-col sm:flex-row sm:flex-wrap sm:items-center sm:justify-center space-x-4 ">
+          <section class="flex flex-col sm:flex-row sm:flex-wrap sm:items-center sm:justify-center sm:space-x-4 ">
             <For each={data.blogs}>
               {([id, blog]) => (
                 <BlogCard
