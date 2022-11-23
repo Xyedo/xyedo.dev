@@ -1,4 +1,3 @@
-@tailwind utilities;
 .visually-hidden {
   border: 0;
   clip: rect(0 0 0 0);
@@ -10,12 +9,16 @@
   width: 1px;
   white-space: nowrap;
 }
-@layer utilities{
-  .header-anchor {
-    @apply cursor-pointer;
-  }
 
-  .header-anchor {
-    @apply inline-block space-x-2 text-pink;
-  }
+.header-anchor {
+  cursor: pointer;
+}
+
+.header-anchor {
+  display: inline-block;
+  color: #d23669;
+  margin-left: 0.5rem;
+}
+.dark .header-anchor {
+  color: #ffa7c4;
 }
