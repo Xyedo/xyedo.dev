@@ -198,19 +198,13 @@ code.hljs {
 }
 /* base0F - Deprecated, Opening/Closing Embedded Language Tags, e.g. <?php ?> */
 .dark .hljs-meta,
-/*
-  prevent top level .keyword and .string scopes
-  from leaking into meta by accident
-*/
+
 .dark .hljs-meta .hljs-keyword
 .dark .hljs-meta .hljs-string {
   color: #5ebaa5;
 }
 .hljs-meta,
-/*
-  prevent top level .keyword and .string scopes
-  from leaking into meta by accident
-*/
+
 .hljs-meta .hljs-keyword,
 .hljs-meta .hljs-string {
   color: #509c93;

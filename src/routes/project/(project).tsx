@@ -11,8 +11,8 @@ export function routeData() {
     get articles() {
       return Object.entries(projectList).sort(
         (a, b) =>
-          b[1].date.getUTCMilliseconds() - a[1].date.getUTCMilliseconds()
-      );
+          a[1].date.getUTCMilliseconds() - b[1].date.getUTCMilliseconds()
+      ).reverse();
     },
   };
 }

@@ -1,7 +1,7 @@
 import { throttle } from "@solid-primitives/scheduled";
 import { createScrollPosition } from "@solid-primitives/scroll";
 import { slug } from "github-slugger";
-import { createEffect, createSignal, onMount } from "solid-js";
+import { createEffect, createSignal, onMount} from "solid-js";
 import { Section } from "~/types";
 export default function createScrollSpy(sections: () => Section[] | undefined) {
   const [currHeadings, setCurrHeadings] = createSignal<string | null>(null);
@@ -16,8 +16,7 @@ export default function createScrollSpy(sections: () => Section[] | undefined) {
     if (sections()?.length === 0) {
       return;
     }
-    const flatSections: Omit<Section, "children">[] = [];
-    walkSections(sections(), flatSections);
+    const flatSections = walkSections(sections());
     let prev = flatSections[0];
     const pos = position + 500;
     for (let i = 0; i < flatSections.length; i++) {
@@ -29,17 +28,21 @@ export default function createScrollSpy(sections: () => Section[] | undefined) {
     }
     setCurrHeadings(slug(prev.value));
   }, 250);
-  createEffect(() => scrollSpy(scrollPosition?.y ?? 0));
+  createEffect(() =>
+    scrollSpy(scrollPosition?.y ?? 0)
+  );
   return currHeadings;
 }
+
 const walkSections = (
   sections: Section[] | undefined,
-  flatsection: Omit<Section, "children">[]
-) => {
-  if (!sections) return;
-  if (sections.length === 0) return;
+  flatsection: Omit<Section, "children">[] = []
+): Omit<Section, "children">[] => {
+  if (!sections) return flatsection;
+  if (sections.length === 0) return flatsection;
   for (let i = 0; i < sections.length; i++) {
     flatsection.push(sections[i]);
     walkSections(sections[i].children, flatsection);
   }
+  return flatsection;
 };

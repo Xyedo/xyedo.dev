@@ -16,7 +16,7 @@ export const projectList: { [key: string]: ProjectInfo } = {
   itsfess: {
     title: "Menfess Bot ITSFess and Website like twitter",
     categories: "web",
-    date: new Date(2022,10, 21),
+    date: new Date(2021,10, 21),
     banner: "/img/itsfess.jpg",
     description:
       "Menfess Bot ITSFess using python and website like twitter using next-js",
@@ -27,7 +27,7 @@ export const projectList: { [key: string]: ProjectInfo } = {
       "algolia",
       "firebase-firestore",
     ],
-    published_at: new Date(2021, 7),
+    published_at: new Date(2021, 7, 1),
     body: async () => await import("./itsfess.mdx"),
   },
   "self-balancing-robot": {

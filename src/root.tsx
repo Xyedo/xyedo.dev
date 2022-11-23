@@ -12,7 +12,7 @@ import {
   Scripts,
   Title,
 } from "solid-start";
-import NavBar from "./components/NavBar";
+import NavBar from "~/components/NavBar";
 import AppContext from "~/context";
 
 import "~/style/tailwind.css";
@@ -26,6 +26,11 @@ function CustomHead() {
     <Head>
       <Title>Xyedo's Websites</Title>
       <Meta charset="utf-8" />
+      <Meta
+        name="viewport"
+        content="width=device-width, initial-scale=1, shrink-to-fit=no"
+      />
+      <Link rel="shortcut icon" type="image/png" href="/favicon/favicon.ico" />
       <Link
         rel="apple-touch-icon"
         sizes="57x57"
