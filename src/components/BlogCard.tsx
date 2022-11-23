@@ -2,11 +2,11 @@ import { BlogInfo } from "content/blog/list";
 import { A } from "solid-start";
 
 interface BlogCard extends Omit<BlogInfo, "body" | "bannerCredit" | "keyword"> {
-  href: string;
+  id: string;
 }
 export default function BlogCard(props: BlogCard) {
   return (
-    <A href={props.href}>
+    <A href={`/blog/${props.id}`}>
       <div
         class="bg-secondary shadow-xl border-transparent relative hover:scale-[.98] hover:border-primary 
       border-4 hover:border-pink focus:border-pink focus:outline-none max-w-md min-h-[600px] 

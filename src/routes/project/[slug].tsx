@@ -49,16 +49,19 @@ const Project: Component = () => {
                   <p> {data.details.date.toLocaleDateString()}</p>
                 </span>
                 <img
-                  class="rounded-md mb-10 shadow-md container mx-auto max-h-[640px] w-auto object-contain"
+                  class="rounded-md mb-10 shadow-md container object-cover max-h-[1100px]"
                   src={data.details.banner}
                 />
-                <p class="text-right">
-                  {" "}
-                  photo{" "}
-                  <a href={data.details.bannerCredit} class="underline">
-                    credit
-                  </a>
-                </p>
+                <Show when={data.details.bannerCredit}>
+                  <p class="text-right">
+                    {" "}
+                    photo{" "}
+                    <a href={data.details.bannerCredit} class="underline">
+                      credit
+                    </a>
+                  </p>
+                </Show>
+
                 <hr class="mt-10 w-3/6 mx-auto text-primary" />
               </div>
               <div class="lg:grid lg:grid-cols-12 lg:mx-[5vw]">

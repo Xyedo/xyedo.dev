@@ -36,7 +36,9 @@ export function useThemeCtx() {
 export const ThemeProvider: Component<Props> = (props) => {
   const local = mergeProps({ storageKey: "theme" }, props);
 
-  const [theme, setTheme] = createSignal<Theme>(getTheme(local.storageKey));
+  const [theme, setTheme] = createSignal<Theme>(
+    getInitialTheme(local.storageKey)
+  );
 
   const getSystemTheme = (ev: MediaQueryListEvent | MediaQueryList) => {
     const isDark = ev.matches;
@@ -64,17 +66,17 @@ export const ThemeProvider: Component<Props> = (props) => {
   });
   //listen to theme change
   createEffect(
-    on(theme, (v) => {
+    on(theme, (theme) => {
       const root = window.document.documentElement;
-      if (v === "dark") {
+      if (theme === "dark") {
         root.classList.remove("light");
         root.classList.add("dark");
-      } else if (v === "light") {
+      } else if (theme === "light") {
         root.classList.remove("dark");
         root.classList.add("light");
       }
-      if (typeof v !== "undefined") {
-        window.localStorage.setItem(local.storageKey, v);
+      if (typeof theme !== "undefined") {
+        window.localStorage.setItem(local.storageKey, theme);
       }
     })
   );
@@ -84,7 +86,7 @@ export const ThemeProvider: Component<Props> = (props) => {
     </ThemeContext.Provider>
   );
 };
-const getTheme = (key: string, fallback?: "dark" | "light"): Theme => {
+const getInitialTheme = (key: string, fallback?: "dark" | "light"): Theme => {
   if (typeof window === "undefined") return undefined;
   let theme: Theme;
   try {

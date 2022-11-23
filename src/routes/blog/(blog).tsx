@@ -12,8 +12,8 @@ export function routeData() {
     get articles() {
       return Object.entries(blogList).sort(
         (a, b) =>
-          b[1].date.getUTCMilliseconds() - a[1].date.getUTCMilliseconds()
-      );
+          a[1].date.getUTCMilliseconds() - b[1].date.getUTCMilliseconds()
+      ).reverse();
     },
   };
 }
@@ -50,7 +50,7 @@ const Blog: Component<Props> = () => {
             {([id, article]) => (
               <BlogCard
                 categories={article.categories}
-                href={`/blog/${id}`}
+                id={id}
                 banner={article.banner}
                 date={article.date}
                 title={article.title}
