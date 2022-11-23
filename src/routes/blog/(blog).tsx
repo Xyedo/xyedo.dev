@@ -43,7 +43,7 @@ const Blog: Component<Props> = () => {
       />
       <section class="mx-[10vw]">
         <div
-          class="flex flex-col sm:flex-row sm:flex-wrap sm:items-center sm:justify-between"
+          class="flex flex-col sm:flex-row sm:flex-wrap sm:items-center sm:justify-center sm:space-x-4 "
           id="curated-blogs"
         >
           <For each={data.articles}>
