@@ -31,17 +31,18 @@ const ArticleSection: Component<Props> = (props) => {
               </span>
 
               <img
-                class="rounded-md mb-10 shadow-md container object-cover"
+                class="rounded-md mb-10 shadow-md container object-cover max-h-[1100px]"
                 src={props.details.banner}
               />
-
-              <p class="text-right">
-                {" "}
-                photo{" "}
-                <a href={props.details.bannerCredit} class="underline">
-                  credit
-                </a>
-              </p>
+              <Show when={typeof props.details.bannerCredit === "string"}>
+                <p class="text-right">
+                  {" "}
+                  photo{" "}
+                  <a href={props.details.bannerCredit!} class="underline">
+                    credit
+                  </a>
+                </p>
+              </Show>
               <hr class="mt-10 w-3/6 mx-auto text-primary" />
             </div>
             <div class="lg:grid lg:grid-cols-12 xl:mx-[5vw]">

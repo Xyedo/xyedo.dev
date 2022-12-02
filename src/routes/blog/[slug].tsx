@@ -20,7 +20,7 @@ export function routeData({ params }: any) {
   };
 }
 
-const Article: Component = () => {
+const Blog: Component = () => {
   const data = useRouteData<typeof routeData>();
   const sections = () => data.article()?.toc;
   const readingTime = () => data.article()?.readingTime;
@@ -43,4 +43,4 @@ const Article: Component = () => {
     </>
   );
 };
-export default Article;
+export default Blog;
