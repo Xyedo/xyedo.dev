@@ -3,13 +3,14 @@ export type Section = {
   value: string;
   children?: Section[];
 };
+export type ReadingTime = {
+  text: string;
+  time: number;
+  words: number;
+  minutes: number;
+};
 export interface MDXDoc {
   toc: Section[];
-  readingTime: {
-    text: string;
-    time: number;
-    words: number;
-    minutes: number;
-  };
+  readingTime: ReadingTime;
   default: string;
 }

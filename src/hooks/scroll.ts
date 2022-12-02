@@ -1,9 +1,11 @@
 import { throttle } from "@solid-primitives/scheduled";
 import { createScrollPosition } from "@solid-primitives/scroll";
 import { slug } from "github-slugger";
-import { createEffect, createSignal, onMount} from "solid-js";
+import { Accessor, createEffect, createSignal, onMount } from "solid-js";
 import { Section } from "~/types";
-export default function createScrollSpy(sections: () => Section[] | undefined) {
+export default function createScrollSpy(
+  sections: Accessor<Section[] | undefined>
+) {
   const [currHeadings, setCurrHeadings] = createSignal<string | null>(null);
   let scrollPosition: { readonly x: number; readonly y: number } | null = null;
   onMount(() => {
@@ -28,9 +30,7 @@ export default function createScrollSpy(sections: () => Section[] | undefined) {
     }
     setCurrHeadings(slug(prev.value));
   }, 250);
-  createEffect(() =>
-    scrollSpy(scrollPosition?.y ?? 0)
-  );
+  createEffect(() => scrollSpy(scrollPosition?.y ?? 0));
   return currHeadings;
 }
 
