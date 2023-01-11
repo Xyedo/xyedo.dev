@@ -1,14 +1,12 @@
-import { projectList } from "~/../content/project/list";
 import { createResource, Component } from "solid-js";
 import { useRouteData } from "solid-start";
+import { projectList } from "~/../content/project/list";
 import SEO from "~/components/SEO";
 import createScrollSpy from "~/hooks/scroll";
 import ArticleSection from "~/components/section/article-section";
 
 export function routeData({ params }: any) {
-  const [article] = createResource(async () => {
-    return await projectList[params.slug].body();
-  });
+  const [article] = createResource(async () => projectList[params.slug].body());
   return {
     get details() {
       return projectList[params.slug];
@@ -28,7 +26,7 @@ const Project: Component = () => {
   return (
     <>
       <SEO
-        title={data.details.title + " | Xyedo"}
+        title={`${data.details.title  } | Xyedo`}
         image={data.details.banner}
         description={data.details.description}
       />

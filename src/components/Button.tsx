@@ -26,14 +26,14 @@ const ButtonWrapper: Component<
   (Parameters<typeof A>["0"] | JSX.HTMLAttributes<HTMLButtonElement>) &
     ALinkButtonProps
 > = (props) => {
-  const [not_used, buttonProps] = splitProps(props, [
+  const [notUsed, buttonProps] = splitProps(props, [
     "as",
     "children",
     "withGradient",
     "class",
     "classList",
   ]);
-  const localProps = mergeProps({ withGradient: false }, not_used);
+  const localProps = mergeProps({ withGradient: false }, notUsed);
   const c = children(() => localProps.children);
   return (
     <Dynamic

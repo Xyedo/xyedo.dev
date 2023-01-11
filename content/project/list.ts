@@ -28,7 +28,7 @@ export const projectList: { [key: string]: ProjectInfo } = {
       "firebase-firestore",
     ],
     published_at: new Date(2021, 7, 1),
-    body: async () => await import("./itsfess.mdx"),
+    body: async () => import("./itsfess.mdx"),
   },
   "self-balancing-robot": {
     title: "Self balancing Robot",
@@ -39,7 +39,7 @@ export const projectList: { [key: string]: ProjectInfo } = {
     banner: "/img/self-balancing-robot.jpg",
     stacks: ["arduino", "c"],
     published_at: new Date(2021, 0, 13),
-    body: async () => await import("./self-balancing-robot.mdx"),
+    body: async () => import("./self-balancing-robot.mdx"),
   },
   findfit: {
     title: "FindFit: Sport Venues that We Can Rent",
@@ -48,7 +48,7 @@ export const projectList: { [key: string]: ProjectInfo } = {
     banner: "/img/findfit.jpg",
     date: new Date(2022, 0, 31),
     stacks: ["react-native", "typescript", "google-map-api"],
-    body: async () => await import("./findfit.mdx"),
+    body: async () => import("./findfit.mdx"),
   },
   "medium-alike-blog": {
     title: "Medium Alike Blog",
@@ -57,7 +57,7 @@ export const projectList: { [key: string]: ProjectInfo } = {
     banner: "/img/mediuma-like.jpg",
     stacks: ["typescript", "next-js", "firebase"],
     date: new Date(2022, 0, 31),
-    body: async () => await import("./medium-alike-blog.mdx"),
+    body: async () => import("./medium-alike-blog.mdx"),
   },
   molinav: {
     title: "Molinav",
@@ -66,7 +66,7 @@ export const projectList: { [key: string]: ProjectInfo } = {
     banner: "/img/molinav.jpg",
     date: new Date(2022, 0, 31),
     stacks: ["react-native", "typescript", "golang", "tensorflow"],
-    body: async () => await import("./molinav.mdx"),
+    body: async () => import("./molinav.mdx"),
   },
   "bookshelf-api": {
     title: "Bookshelf Api",
@@ -78,7 +78,7 @@ export const projectList: { [key: string]: ProjectInfo } = {
     bannerCredit: "https://unsplash.com/@kellysikkema",
     date: new Date(2022, 5, 4),
     stacks: ["javascript", "hapi-js"],
-    body: async () => await import("./bookshelf-api.mdx"),
+    body: async () => import("./bookshelf-api.mdx"),
   },
   snippetbox: {
     title: "Snippetbox",
@@ -88,7 +88,7 @@ export const projectList: { [key: string]: ProjectInfo } = {
     banner: "https://github.com/Xyedo/snippetbox/blob/main/image/first.jpg?raw=true",
     date: new Date(2022, 6, 4),
     stacks: ["golang", "mySQL"],
-    body: async () => await import("./snippetbox.mdx"),
+    body: async () => import("./snippetbox.mdx"),
   },
   "locker-using-RFID": {
     title: "Locker Using RFID",
@@ -99,7 +99,7 @@ export const projectList: { [key: string]: ProjectInfo } = {
       "https://github.com/Xyedo/locker-using-RFID/blob/main/assets/built.jpg?raw=true",
     date: new Date(2022, 7, 26),
     stacks: ["arduino", "c++"],
-    body: async () => await import("./locker-using-rfid.mdx"),
+    body: async () => import("./locker-using-rfid.mdx"),
   },
   "subsciption-service": {
     title: "Subscription Service",
@@ -109,7 +109,7 @@ export const projectList: { [key: string]: ProjectInfo } = {
     banner: "/img/subscription-api.jpg",
     date: new Date(2022, 7, 31),
     stacks: ["golang", "mailhog", "redis", "postgreSQL"],
-    body: async () => await import("./subscription-api.mdx"),
+    body: async () => import("./subscription-api.mdx"),
   },
   "notes-app-api": {
     title: "Notes App API",
@@ -120,7 +120,7 @@ export const projectList: { [key: string]: ProjectInfo } = {
     categories: "api",
     date: new Date(2022, 8, 14),
     stacks: ["javascript", "hapi-js", "redis", "postgreSQL", "rabbitMQ"],
-    body: async () => await import("./notes-app-api.mdx"),
+    body: async () => import("./notes-app-api.mdx"),
   },
   "open-music-api": {
     title: "Open Music API",
@@ -138,6 +138,6 @@ export const projectList: { [key: string]: ProjectInfo } = {
       "rabbitMQ",
       "aws-s3",
     ],
-    body: async () => await import("./open-music-api.mdx"),
+    body: async () => import("./open-music-api.mdx"),
   },
 };

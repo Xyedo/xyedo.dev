@@ -1,15 +1,13 @@
-import { blogList } from "~/../content/blog/list";
 import { createResource, Component } from "solid-js";
 
 import { useRouteData } from "solid-start";
+import { blogList } from "~/../content/blog/list";
 import SEO from "~/components/SEO";
 import createScrollSpy from "~/hooks/scroll";
 import ArticleSection from "~/components/section/article-section";
 
 export function routeData({ params }: any) {
-  const [article] = createResource(async () => {
-    return await blogList[params.slug].body();
-  });
+  const [article] = createResource(async () => blogList[params.slug].body());
   return {
     get details() {
       return blogList[params.slug];
@@ -29,7 +27,7 @@ const Blog: Component = () => {
   return (
     <>
       <SEO
-        title={data.details.title + " | Xyedo"}
+        title={`${data.details.title  } | Xyedo`}
         image={data.details.banner}
         description={data.details.description}
       />

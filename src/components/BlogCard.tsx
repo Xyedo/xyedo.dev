@@ -1,10 +1,10 @@
 import { BlogInfo } from "content/blog/list";
 import { A } from "solid-start";
 
-interface BlogCard extends Omit<BlogInfo, "body" | "bannerCredit" | "keyword"> {
+interface BlogCardProps extends Omit<BlogInfo, "body" | "bannerCredit" | "keyword"> {
   id: string;
 }
-export default function BlogCard(props: BlogCard) {
+export default function BlogCard(props: BlogCardProps) {
   return (
     <A href={`/blog/${props.id}`}>
       <div

@@ -23,7 +23,7 @@ export const blogList: { [key: string]: BlogInfo } = {
       "Becoming programmer is essentially become to fulltime learning experience, and learning another languange or framework can help you to become a better programmer",
     categories: "learning",
     keyword: ["javascript", "typescript", "golang", "C#"],
-    body: async () => await import("./why-learning-another-lang-matter.mdx"),
+    body: async () => import("./why-learning-another-lang-matter.mdx"),
   },
   "uploading-file-in-gin-with-s3": {
     title: "Uploading File in Gin With S3",
@@ -35,6 +35,6 @@ export const blogList: { [key: string]: BlogInfo } = {
       "How to upload a file using gin gonic and s3 with correct error handling and security first approach",
     categories: "tutorial",
     keyword: ["golang", "gin", "s3"],
-    body: async () => await import("./uploading-file-in-gin-with-s3.mdx"),
+    body: async () => import("./uploading-file-in-gin-with-s3.mdx"),
   },
 };

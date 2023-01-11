@@ -3,6 +3,20 @@ import { createScrollPosition } from "@solid-primitives/scroll";
 import { slug } from "github-slugger";
 import { Accessor, createEffect, createSignal, onMount } from "solid-js";
 import { Section } from "~/types";
+
+const walkSections = (
+  sections: Section[] | undefined,
+  flatsection: Omit<Section, "children">[] = []
+): Omit<Section, "children">[] => {
+  if (!sections) return flatsection;
+  if (sections.length === 0) return flatsection;
+  for (let i = 0; i < sections.length; i += 1) {
+    flatsection.push(sections[i]);
+    walkSections(sections[i].children, flatsection);
+  }
+  return flatsection;
+};
+
 export default function createScrollSpy(
   sections: Accessor<Section[] | undefined>
 ) {
@@ -21,9 +35,9 @@ export default function createScrollSpy(
     const flatSections = walkSections(sections());
     let prev = flatSections[0];
     const pos = position + 500;
-    for (let i = 0; i < flatSections.length; i++) {
+    for (let i = 0; i < flatSections.length; i += 1) {
       const el = document.getElementById(slug(flatSections[i].value))!;
-      if (pos < el?.offsetTop + el?.clientHeight) {
+      if (pos < el.offsetTop + el.clientHeight) {
         break;
       }
       prev = flatSections[i];
@@ -33,16 +47,3 @@ export default function createScrollSpy(
   createEffect(() => scrollSpy(scrollPosition?.y ?? 0));
   return currHeadings;
 }
-
-const walkSections = (
-  sections: Section[] | undefined,
-  flatsection: Omit<Section, "children">[] = []
-): Omit<Section, "children">[] => {
-  if (!sections) return flatsection;
-  if (sections.length === 0) return flatsection;
-  for (let i = 0; i < sections.length; i++) {
-    flatsection.push(sections[i]);
-    walkSections(sections[i].children, flatsection);
-  }
-  return flatsection;
-};

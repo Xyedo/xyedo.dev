@@ -5,8 +5,7 @@ type Props = {
   href: string;
 };
 
-const ArrowBtn: Component<Props> = (props) => {
-  return (
+const ArrowBtn: Component<Props> = (props) => (
     <A href={props.href}>
       <svg class="w-20 h-16 hover-btn scale-[0.65] fill-primary">
         <polygon
@@ -24,6 +23,5 @@ const ArrowBtn: Component<Props> = (props) => {
       </svg>
     </A>
   );
-};
 
 export default ArrowBtn;

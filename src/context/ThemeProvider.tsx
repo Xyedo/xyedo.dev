@@ -1,4 +1,4 @@
-//port from next-themes
+// port from next-themes
 import {
   Accessor,
   Component,
@@ -28,11 +28,22 @@ const ThemeContext = createContext<Ctx>();
 export function useThemeCtx() {
   const ctx = useContext(ThemeContext);
   if (!ctx) {
+    // eslint-disable-next-line no-console
     console.error("Should use this inside a ThemeProvider Component");
-    return;
   }
   return ctx;
 }
+const getInitialTheme = (key: string, fallback?: "dark" | "light"): Theme => {
+  if (typeof window === "undefined") return undefined;
+  let theme: Theme;
+  try {
+    theme = (localStorage.getItem(key) as Theme) ?? undefined;
+  } catch (e) {
+    // Unsupported
+  }
+  return theme ?? fallback;
+};
+
 export const ThemeProvider: Component<Props> = (props) => {
   const local = mergeProps({ storageKey: "theme" }, props);
 
@@ -53,7 +64,7 @@ export const ThemeProvider: Component<Props> = (props) => {
       setTheme(val);
     }
   });
-  //listen to system pref
+  // listen to system pref
   createEffect(() => {
     const media = window.matchMedia(MEDIA);
     media.addListener(getSystemTheme);
@@ -64,19 +75,19 @@ export const ThemeProvider: Component<Props> = (props) => {
       media.removeEventListener("change", getSystemTheme);
     });
   });
-  //listen to theme change
+  // listen to theme change
   createEffect(
-    on(theme, (theme) => {
+    on(theme, (currTheme) => {
       const root = window.document.documentElement;
-      if (theme === "dark") {
+      if (currTheme === "dark") {
         root.classList.remove("light");
         root.classList.add("dark");
-      } else if (theme === "light") {
+      } else if (currTheme === "light") {
         root.classList.remove("dark");
         root.classList.add("light");
       }
-      if (typeof theme !== "undefined") {
-        window.localStorage.setItem(local.storageKey, theme);
+      if (typeof currTheme !== "undefined") {
+        window.localStorage.setItem(local.storageKey, currTheme);
       }
     })
   );
@@ -85,14 +96,4 @@ export const ThemeProvider: Component<Props> = (props) => {
       {props.children}
     </ThemeContext.Provider>
   );
-};
-const getInitialTheme = (key: string, fallback?: "dark" | "light"): Theme => {
-  if (typeof window === "undefined") return undefined;
-  let theme: Theme;
-  try {
-    theme = (localStorage.getItem(key) as Theme) ?? undefined;
-  } catch (e) {
-    // Unsupported
-  }
-  return theme ?? fallback;
 };

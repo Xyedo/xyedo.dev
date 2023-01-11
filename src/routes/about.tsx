@@ -2,10 +2,10 @@ import { Component } from "solid-js";
 import { Motion } from "@motionone/solid";
 import ButtonWrapper from "~/components/Button";
 import SEO from "~/components/SEO";
+
 type Props = {};
 
-const About: Component<Props> = () => {
-  return (
+const About: Component<Props> = () => (
     <main class="relative mx-[10vw] text-primary min-h-max">
       <SEO title="About / Xyedo" />
       <Motion.section
@@ -70,6 +70,5 @@ const About: Component<Props> = () => {
       </Motion.div>
     </main>
   );
-};
 
 export default About;

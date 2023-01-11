@@ -14,6 +14,7 @@ import { Motion } from "@motionone/solid";
 import { Portal } from "solid-js/web";
 import PageLoaderBar from "~/components/loader/page-loading-bar";
 import { useThemeCtx } from "~/context/ThemeProvider";
+
 type Props = {};
 const LINKS = [
   { name: "Blog", to: "/blog" },
@@ -25,28 +26,6 @@ const MOBILE_LINK = [
   ...LINKS,
   { name: "Subscribe", to: "/subscribe" },
 ];
-
-const NavLink: Component<Parameters<typeof A>["0"] & { name: string }> = (
-  props
-) => {
-  const [local, linkProps] = splitProps(props, ["href", "name"]);
-  const match = useMatch(() => local.href);
-  return (
-    <li class="px-5 py-2">
-      <A
-        href={local.href}
-        {...linkProps}
-        class="underlined font-semibold focus:outline-none block whitespace-nowrap text-lg hover:text-pink focus:text-pink"
-        classList={{
-          "active text-pink": Boolean(match()),
-          "text-primary": Boolean(!match()),
-        }}
-      >
-        {local.name}
-      </A>
-    </li>
-  );
-};
 const iconTransformOrigin = { "transform-origin": "50% 100px" };
 const DarkModeToggle: Component<{
   variant?: "icon" | "labelled";
@@ -99,6 +78,92 @@ const DarkModeToggle: Component<{
     </button>
   );
 };
+type MobileMenuListProps = {
+  isExpanded: boolean;
+  setExpanded: (v: boolean) => void;
+};
+const MobileMenuList: Component<MobileMenuListProps> = (props) => {
+  const themeCtx = useThemeCtx();
+  return (
+    <Show when={props.isExpanded}>
+      <Portal>
+        <aside
+          class="fixed z-50 w-full h-full bg-primary grid items-center top-20 left-0 right-0
+    transition duration-300 ease-in-out"
+          classList={{
+            "opacity-1 top-0": props.isExpanded,
+            "opacity-0 -top-full": !props.isExpanded,
+          }}
+        >
+          <div
+            class={`absolute top-7 right-4 bg-transparent text-4xl cursor-pointer 
+              outline-none`}
+            onClick={() => props.setExpanded(false)}
+          >
+            <TiTimes
+              class="text-primary"
+              color={themeCtx?.theme() === "dark" ? "#fff" : "#000"}
+            />
+          </div>
+
+          <div class="text-primary">
+            <ul class="grid text-center grid-cols-1 grid-rows-[repeat(5,90px)]">
+              <For each={MOBILE_LINK}>
+                {(link) => (
+                  <li
+                    class="flex items-center justify-center text-2xl no-underline list-none 
+                   transition duration-200 ease-in-out cursor-pointer hover:text-pink font-medium"
+                  >
+                    <A href={link.to} onClick={() => props.setExpanded(false)}>
+                      {link.name}
+                    </A>
+                  </li>
+                )}
+              </For>
+            </ul>
+            <div class="py-9 text-center">
+              <DarkModeToggle variant="labelled" />
+            </div>
+          </div>
+        </aside>
+      </Portal>
+    </Show>
+  );
+};
+const Subscribe: Component = () => (
+    <A
+      href="/subscribe"
+      aria-label="Subscribe My Blog"
+      class={
+        "focus:outline-none ml-4 inline-flex h-14 w-14 items-center justify-center rounded-full"
+      }
+    >
+      <FaSolidCircle class={"text-pink transition"} size={50} />
+    </A>
+  );
+
+const NavLink: Component<Parameters<typeof A>["0"] & { name: string }> = (
+  props
+) => {
+  const [local, linkProps] = splitProps(props, ["href", "name"]);
+  const match = useMatch(() => local.href);
+  return (
+    <li class="px-5 py-2">
+      <A
+        href={local.href}
+        {...linkProps}
+        class="underlined font-semibold focus:outline-none block whitespace-nowrap text-lg hover:text-pink focus:text-pink"
+        classList={{
+          "active text-pink": Boolean(match()),
+          "text-primary": Boolean(!match()),
+        }}
+      >
+        {local.name}
+      </A>
+    </li>
+  );
+};
+
 const topVariants = {
   open: { rotate: 45, y: 7 },
   closed: { rotate: 0, y: 0 },
@@ -167,71 +232,6 @@ const MobileMenu: Component = () => {
       </button>
       <MobileMenuList isExpanded={isExpanded()} setExpanded={setExpanded} />
     </>
-  );
-};
-type MobileMenuListProps = {
-  isExpanded: boolean;
-  setExpanded: (v: boolean) => void;
-};
-const MobileMenuList: Component<MobileMenuListProps> = (props) => {
-  const themeCtx = useThemeCtx();
-  return (
-    <Show when={props.isExpanded}>
-      <Portal>
-        <aside
-          class="fixed z-50 w-full h-full bg-primary grid items-center top-20 left-0 right-0
-    transition duration-300 ease-in-out"
-          classList={{
-            "opacity-1 top-0": props.isExpanded,
-            "opacity-0 -top-full": !props.isExpanded,
-          }}
-        >
-          <div
-            class={`absolute top-7 right-4 bg-transparent text-4xl cursor-pointer 
-              outline-none`}
-            onClick={() => props.setExpanded(false)}
-          >
-            <TiTimes
-              class="text-primary"
-              color={themeCtx?.theme() === "dark" ? "#fff" : "#000"}
-            />
-          </div>
-
-          <div class="text-primary">
-            <ul class="grid text-center grid-cols-1 grid-rows-[repeat(5,90px)]">
-              <For each={MOBILE_LINK}>
-                {(link) => (
-                  <li
-                    class="flex items-center justify-center text-2xl no-underline list-none 
-                   transition duration-200 ease-in-out cursor-pointer hover:text-pink font-medium"
-                  >
-                    <A href={link.to} onClick={() => props.setExpanded(false)}>
-                      {link.name}
-                    </A>
-                  </li>
-                )}
-              </For>
-            </ul>
-            <div class="py-9 text-center">
-              <DarkModeToggle variant="labelled" />
-            </div>
-          </div>
-        </aside>
-      </Portal>
-    </Show>
-  );
-};
-const Subscribe: Component = () => {
-  return (
-    <A
-      href="/subscribe"
-      aria-label="Subscribe My Blog"
-      class={
-        "focus:outline-none ml-4 inline-flex h-14 w-14 items-center justify-center rounded-full"
-      }
-    >
-      <FaSolidCircle class={"text-pink transition"} size={50} />
-    </A>
   );
 };
 

@@ -6,8 +6,7 @@ import { A } from "solid-start";
 interface Props extends Omit<ProjectInfo, "body"> {
   id: string;
 }
-const ProjectCard: Component<Props> = (props) => {
-  return (
+const ProjectCard: Component<Props> = (props) => (
     <div
       class="box-border w-[92%] md:w-[initial] m-auto 
     md:m-[initial]"
@@ -49,5 +48,4 @@ const ProjectCard: Component<Props> = (props) => {
       </A>
     </div>
   );
-};
 export default ProjectCard;

@@ -1,10 +1,11 @@
 import { Component, For } from "solid-js";
+import { useRouteData } from "solid-start";
 import SEO from "~/components/SEO";
-import HeroSections from "../../components/section/hero-sections";
 import ButtonWrapper from "~/components/Button";
 import { projectList } from "~/../content/project/list";
-import { useRouteData } from "solid-start";
 import ProjectCard from "~/components/ProjectCard";
+import HeroSections from "../../components/section/hero-sections";
+
 type Props = {};
 export function routeData() {
   return {

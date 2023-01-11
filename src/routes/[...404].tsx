@@ -2,8 +2,7 @@ import { Component } from "solid-js";
 import HeroSections from "~/components/section/hero-sections";
 import ButtonWrapper from "~/components/Button";
 
-const NotFound: Component = () => {
-  return (
+const NotFound: Component = () => (
     <main>
       <HeroSections
         title={"Oops Sorry"}
@@ -20,6 +19,5 @@ const NotFound: Component = () => {
       />
     </main>
   );
-};
 
 export default NotFound;

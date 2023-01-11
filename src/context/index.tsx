@@ -5,8 +5,6 @@ type Props = {
   children: JSXElement;
 };
 
-const AppContext: Component<Props> = (props) => {
-  return <ThemeProvider>{props.children}</ThemeProvider>;
-};
+const AppContext: Component<Props> = (props) => <ThemeProvider>{props.children}</ThemeProvider>;
 
 export default AppContext;

@@ -61,7 +61,7 @@ const TableOfContent: Component<Props> = (props) => {
                       <Show when={secondLevel.children}>
                         <ul>
                           <For each={secondLevel.children}>
-                            {(thirdLevel, idx) => (
+                            {(thirdLevel, idx2) => (
                               <SectionButton
                                 title={thirdLevel.value}
                                 class={
@@ -69,7 +69,7 @@ const TableOfContent: Component<Props> = (props) => {
                                 }
                                 classList={{
                                   "mb-2":
-                                    idx() === secondLevel.children!.length,
+                                    idx2() === secondLevel.children!.length,
                                 }}
                                 href={`#${slug(thirdLevel.value)}`}
                               />

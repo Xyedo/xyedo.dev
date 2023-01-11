@@ -3,6 +3,7 @@ import { ProjectInfo } from "content/project/list";
 import { Accessor, Component, Show } from "solid-js";
 import { ReadingTime, Section } from "~/types";
 import TableOfContent from "./toc";
+
 type Props = {
   details: ProjectInfo | BlogInfo;
   sections: Accessor<Section[] | undefined>;
@@ -10,8 +11,7 @@ type Props = {
   articleData: Accessor<string | undefined>;
   currHeading: Accessor<string | null>;
 };
-const ArticleSection: Component<Props> = (props) => {
-  return (
+const ArticleSection: Component<Props> = (props) => (
     <div class="mx-auto text-primary my-2 lg:my-10 pt-5 pb-10 px-3 lg:px-12 container">
       <div class="mb-10 lg:flex justify-center">
         <div class="space-y-10 px-4 lg:px-0">
@@ -65,6 +65,5 @@ const ArticleSection: Component<Props> = (props) => {
       </div>
     </div>
   );
-};
 
 export default ArticleSection;

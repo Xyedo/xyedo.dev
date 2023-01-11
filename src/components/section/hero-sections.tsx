@@ -72,7 +72,7 @@ const HeroSections: Component<Props> = (props) => {
           <Motion.img
             {...localProps.imageProps}
             class={
-              "h-auto w-full object-contain" + localProps.imageProps?.class
+              `h-auto w-full object-contain${  localProps.imageProps?.class}`
             }
             classList={{
               "max-h-50vh": localProps.imageSize === "medium",

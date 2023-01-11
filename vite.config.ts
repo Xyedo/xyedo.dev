@@ -1,3 +1,4 @@
+/* eslint-disable import/no-extraneous-dependencies */
 import solid from "solid-start/vite";
 import { defineConfig } from "vite";
 import remarkGfm from "remark-gfm";

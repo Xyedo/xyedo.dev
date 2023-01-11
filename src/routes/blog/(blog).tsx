@@ -5,6 +5,7 @@ import HeroSections from "~/components/section/hero-sections";
 import { blogList } from "~/../content/blog/list";
 import SEO from "~/components/SEO";
 import BlogCard from "~/components/BlogCard";
+
 type Props = {};
 
 export function routeData() {

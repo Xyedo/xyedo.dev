@@ -1,8 +1,8 @@
-import { blogList } from "~/../content/blog/list";
-import { projectList } from "~/../content/project/list";
 import { Component, createEffect, For, onCleanup } from "solid-js";
 import { createStore } from "solid-js/store";
 import { useRouteData } from "solid-start";
+import { projectList } from "~/../content/project/list";
+import { blogList } from "~/../content/blog/list";
 import ButtonWrapper from "~/components/Button";
 import HeroSections from "~/components/section/hero-sections";
 import SEO from "~/components/SEO";
@@ -25,10 +25,12 @@ const BannerInitVal: InitVal = {
 export function routeData() {
   return {
     get blogs() {
-      return Object.entries(blogList).sort(
-        (a, b) =>
-          b[1].date.getUTCMilliseconds() - a[1].date.getUTCMilliseconds()
-      ).reverse();
+      return Object.entries(blogList)
+        .sort(
+          (a, b) =>
+            b[1].date.getUTCMilliseconds() - a[1].date.getUTCMilliseconds()
+        )
+        .reverse();
     },
     get projects() {
       return Object.entries(projectList)
@@ -36,7 +38,8 @@ export function routeData() {
           (a, b) =>
             a[1].date.getUTCMilliseconds() - b[1].date.getUTCMilliseconds()
         )
-        .reverse().slice(0, 5);
+        .reverse()
+        .slice(0, 5);
     },
   };
 }
@@ -48,13 +51,13 @@ const Home: Component = () => {
     const i = loopNum % toRotate.length;
     const fullText = toRotate[i];
     if (isDeleting) {
-      setState((state) => ({
-        text: fullText.substring(0, state.text.length - 1),
+      setState((currState) => ({
+        text: fullText.substring(0, currState.text.length - 1),
         delta: 100,
       }));
     } else {
-      setState((state) => ({
-        text: fullText.substring(0, state.text.length + 1),
+      setState((currState) => ({
+        text: fullText.substring(0, currState.text.length + 1),
       }));
     }
     if (!isDeleting && text === fullText) {
@@ -63,9 +66,9 @@ const Home: Component = () => {
         isDeleting: true,
       });
     } else if (isDeleting && text === "") {
-      setState((state) => ({
+      setState((currState) => ({
         delta: 200,
-        loopNum: state.loopNum + 1,
+        loopNum: currState.loopNum + 1,
         isDeleting: false,
       }));
     }
