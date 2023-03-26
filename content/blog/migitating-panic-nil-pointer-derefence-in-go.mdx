@@ -1,0 +1,247 @@
+Have you seen an the error like this 
+
+<img
+  src="img/blog/nil-pointer-error.png"
+  width="500"
+  alt="nil pointer dereference error"
+/>
+
+its when you access an item in a pointer to variable that has not been initialized.
+in other means, we dereferencing a nil pointer because default value to a pointer Type in Go is a nil
+
+# So, How to Mitigate and Eliminates That?
+we can really mitigates that just by manually checking if we have a nil in the pointer or not in your function stack
+```go
+  package user
+  import (
+    "bcrypt"
+  )
+  type Credential {
+    UniqueValue string
+    Password string
+  }
+  type User struct {
+    ID int64
+    FullName string
+    EmailCredential *Credential
+    UsernameCredential *Credential
+    PhoneNumberCredential *Credential
+  }
+
+  func GrantAccess(plainPassword string)  {
+    myUser := User{}
+    
+    if User.EmailCredential != nil {
+      err :=bcrypt.CompareHashAndPassword(User.EmailCredential.Password, plainPassword)
+      if err != nil {
+        //error handling
+      }
+      //grant access
+    }
+  }
+```
+And thats it, its super simple
+we just manually checking every struct if we have a pointer Type and manually check if its nil pointer or not (scream sarcasm if you missed it)
+in above implementation we have the overhead of which type is a pointer and which isn't, 
+and we can easily forget to check if its nil pointer or not
+
+# Stealing Solution from Another Languange
+lets see how another languange mitigates that, 
+in other (really) popular languange that has a null, like we all that already know, javascript
+
+## Javascript Optional Chaining Operators
+we just use optional chaining operator
+like the holy grail mdn says
+
+[The optional chaining (?.) operator accesses an object's property or calls a function. 
+If the object accessed or function called using this operator is undefined or null, 
+the expression short circuits and evaluates to undefined instead of throwing an error.](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Operators/Optional_chaining)
+
+but mommy, can we have optional chaining operator in Go? 
+
+well, short answer is no, with golang languange that focused to simplicity, we dont have the optional chaining operator yet
+
+long answer is yes, with the Workaround.Inc, we have to ALWAYS do a getter method in a struct properties, so instead manually checking the nil in the function stack,
+we just check once in the getter method, if its nil, we return the default value
+
+```go
+  package user
+  import (
+    "bcrypt"
+  )
+  type Credential {
+    uniqueValue string
+    password string
+  }
+  func (c *Credential) GetPassword() string {
+    if c == nil {
+      return ""
+    }
+    return c.password
+  }
+
+// Do the same with uniqueValue 
+
+  type User struct {
+    id int64
+    fullName string
+    emailCredential *Credential
+    usernameCredential *Credential
+    phoneNumberCredential *Credential
+  }
+  func (u *User) GetEmailCredential() *Credential {
+    if u.emailCredential == nil {
+      return nil
+    }
+    return u.emailCredential
+  }
+  // Do the same with all properties
+```
+
+So the implementation in the function call stack is somewhat like this
+
+```go
+  /// ...
+
+  func GrantAccess(plainPassword string)  {
+    myUser := User{}
+    err :=bcrypt.CompareHashAndPassword(User.GetEmailCredential().GetPassword(), plainPassword)
+    if err != nil {
+      //error handling
+    }
+    //grant access
+  
+  }
+
+```
+Pretty #CleanCode right, but like some Workaround.Inc, it has some downside, it doesnt have the short circuits if the value is nil, 
+instead, we use the default value, its still okay when we checking on non default value, like in the above, we cant have an empty string Hash password
+
+and the problem arises when we want to know if its really the default value or the struct behind it is nil, but for most usecases, i think its sufficient enough
+
+How about old OOP languange like java, how they handle it? 
+they use an optional package
+
+## Java Optional package
+in java, they have a package optional, you can read it [here](https://www.baeldung.com/java-optional)
+
+essentially, they wrap a value that can be nil with a utility classses
+with golang generics, we can use it to our advantages (finally tho)
+
+we need implement optional package with generics
+
+```go 
+package optional
+
+// https://github.com/markphelps/optional MIT License
+import "encoding/json"
+
+type Option[T comparable] struct {
+	value *T
+}
+
+func New[T comparable](v T) Option[T] {
+	return Option[T]{&v}
+}
+
+func (t *Option[T]) Set(v T) {
+	t.value = &v
+}
+
+func (t Option[T]) Get() (T, bool) {
+	if !t.Present() {
+		var zero T
+		return zero, false
+	}
+
+	return *t.value, true
+}
+func (t Option[T]) MustGet() T {
+	if !t.Present() {
+		panic("value is not present")
+	}
+
+	return *t.value
+}
+
+func (t Option[T]) Present() bool {
+	return t.value != nil
+}
+
+func (t Option[T]) OrElse(v T) T {
+	if t.Present() {
+		return *t.value
+	}
+	return v
+}
+
+func (t Option[T]) OrError(err string) error {
+  return errors.New(err)
+}
+
+func (t Option[T]) If(fn func(T)) Option[T] {
+	if t.Present() {
+		fn(*t.value)
+	}
+  return t
+}
+func (t Option[T]) MarshalJSON() ([]byte, error) {
+	if t.Present() {
+		return json.Marshal(t.value)
+	}
+	return json.Marshal(nil)
+}
+
+func (t *Option[T]) UnmarshalJSON(data []byte) error {
+	if string(data) == "null" {
+		t.value = nil
+		return nil
+	}
+	var value T
+	if err := json.Unmarshal(data, &value); err != nil {
+		return err
+	}
+
+	t.value = &value
+	return nil
+}
+
+
+```
+
+And use it to our struct, like this
+```go
+  package user
+  import (
+    "bcrypt"
+  )
+  type Credential {
+    UniqueValue string
+    Password string
+  }
+  type User struct {
+    ID int64
+    FullName string
+    EmailCredential optional.Option[Credential]
+    UsernameCredential optional.Option[Credential]
+    PhoneNumberCredential optional.Option[Credential]
+  }
+
+  func GrantAccess(plainPassword string)  {
+    myUser := User{}
+
+    myUser.EmailCredential.If(func(creds entity.Credential) {
+      err := bcrypt.CompareHashAndPassword(creds.Password, password)
+      if err != nil {
+        //error handling
+      }
+      //grant access
+    }).OrError("empty email creds")
+    
+  }
+```
+
+its essentially the first one with helper function to not messed up.
+
+Thats it, thanks for reading this long guys! huhuy
+
