@@ -47,5 +47,16 @@ export const blogList: { [key: string]: BlogInfo } = {
     categories: "tutorial",
     keyword: ["golang", "pointer"],
     body : async () => await import("./migitating-panic-nil-pointer-derefence-in-go.mdx")
+  },
+  "grpc-as-a-service-communication": {
+    title: "gRPC as A Service Communication ",
+    date: new Date(2023, 2, 27),
+    banner: "https://images.unsplash.com/uploads/1413222992504f1b734a6/1928e537?q=80&w=2070&auto=format&fit=crop&ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D",
+    bannerCredit: "https://unsplash.com/@ptrikutam",
+    description:
+    "here we digest and asking important question on gRPC, schema,data type, protobuf, how it differ from REST, and golang implementation",
+    categories: "tutorial",
+    keyword: ["golang", "grpc","protobuf"],
+    body : async () => await import("./grpc-as-a-service-communication.mdx")
   }
 };

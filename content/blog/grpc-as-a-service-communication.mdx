@@ -1,0 +1,475 @@
+# gRPC as Microservice Communication
+
+## GRPC
+lets start this blog by asking some question about grpc
+
+### What is gRPC?
+
+Grpc is another HTTP protocol like REST, grpc stands for Google Remote Produceral Call. It Turn your code into calling a remote function using a contract called service, let's dive into the fundamental and why it's important.
+
+### What’s gRPC used to exchange data?
+
+In a REST World, we concatenate anything into a string using JSON, instead using JSON, grpc use Protocol Buffer, Protocol Buffer is just another form to exchange data between systems, lets save that in our brain, and ask more important question
+
+### Why gRPC?
+In a monolith architecture, it just functions call, right? wanna access the identity of a user? just function call straight into the db table and just find it, as simple as it is. 
+
+Well, in a microservices world, we have to call the other domain to access the data we need. On the first iteration of the product, we just use what is already working (REST) and flying data over the network to get the data we need and that is a problem. users don't really know and maybe dont wanna know what we are using to get their data, as long as it fast and stable, the users are happy. 
+
+Well, REST is not that fast, in almost all benchmark, we’ll see gRPC with protobuf beats REST with JSON, and question arises
+
+### Why We Need Faster Protocol than REST?
+
+ think it's natural for us to have a question like that, and like all of our beloved seniors, the answer depends, if it's like our core service that need communications must be that fast, we have an option in our toolbelt now, its gRPC. When you implement your backend architecture with clean architecture, you can easily add gRPC without changing your code.
+
+### They use the same HTTP Protocol, but why gRPC faster?
+
+It's the protobuf, unlike JSON that uses string and just send it out, in a protobuf, the payload is encoded into binary, thats play important role on why gRPC is faster. now we have the big picture on why gRPC, lets dive-in into Protobuf
+
+
+## Protocol Buffer (Protobuf)
+
+Let's just focus on proto3 for now and see the big Picture
+
+to define a Message Type, its
+
+```go
+syntax = "proto3"
+
+message AddUserRequest {
+  string username = 1;
+  string email = 2;
+  string password =3;
+}
+
+```
+
+To Use proto3, we need add proto3 as a syntax and add name of object, in this case, is AddUserRequest, its object value type as an example, username has a datatype string and has a field number of 1, lets tackle that one by one, start by data type
+
+### Data Type
+you can read all the details in here, i just cover the big picture, every data types have a default values, if you don't set the values, it becomes to the default values, (if you are asking question like how to differentiate between default values and user set to zero values, we have the answer, just bear with me)
+
+#### Numeric
+
+Default values is zero
+
+floating number has double (float64) and float (float32)
+
+whole number has int32,int64, uint32, uint64, and has exotic types like sint32, sint64, fixed64 etc that has specific purpose for efficiency, lets focus on regular type 
+
+#### String
+
+its just a string and default values is empty string
+
+#### Bytes
+
+its just a bytes and default values is empty bytes
+
+#### Bool
+
+just a bool true and false and default values is false
+
+#### Enum
+
+you can define your own Enum's, and default values is the field number zero, so your Enum's must have zero field number, with example
+```go
+enum DeliveryOrderStatus {
+	DELIVERY_ORDER_UNSPECIFIED = 0;
+	DELIVERY_ORDER_DRAFT = 1;
+	DELIVERY_ORDER_CONFIRMED = 2;
+	DELIVERY_ORDER_SCHEDULED =3;
+}
+```
+### Field Number
+
+field number should be unique among of all its message and should never be reused, if we want to extend the API contract, just use new field number, if we need to delete Fields and we want to maintain backward compatibility, we used reserved keyword, for example
+
+```go
+syntax = "proto3"
+
+message AddUserRequest {
+  reserved 1 to 3;
+	reserved "username","email","password";
+	string otp_token 4; 
+}
+```
+
+or just doesn’t bother with reserved keyword and create AddUserRequestV2
+
+```go
+syntax = "proto3"
+
+message AddUserRequestV2 {
+	string otp_token 1; 
+}
+```
+
+### Field Labels
+
+If we don’t have label like the example above, it implicitly presence, so it always set to zero values when user/client doesn’t set the value, so we don't know when is user set zero value or user doesn't send the value, so, how we implement REST-PATCH solution in gRPC? we use optional, for example
+
+```go
+message UpdateUserRequest {
+  optional string username = 1;
+  optional string email = 2;
+  optional string password = 3;
+}
+
+```
+
+so, we can check if it's the value has been set by the user, in the implementation, it will compile to UpdateUserRequest.HasUsername() and return true if the user / client set the value for username
+
+What about **array**? we use field labels repeated for that, for example
+
+
+```go
+message PostTagResponse {
+  repeated string tags 1;
+}
+```
+
+### Message Type
+you can nest your message type, for example
+
+```go
+message ListResponse {
+  message Metadata {
+		// your data types
+	}
+	message Data {
+		message PaginatedResult {
+			//your data type
+		}
+		repeated string ids 2;
+	}
+}
+```
+
+I think that's it, there's another good feature in gRPC that is worth mentioning is, is datatype any and oneOf but it's will not be mentioned in here. 
+
+
+---
+Let's Go to the next Step with Service, which creates explicit contract between your client and your server. Basically, it just an interface with Input and Output, for example, a whole user.proto file is like this
+
+```go
+syntax="proto3";
+package user;
+
+message AddUserRequest {
+  string username = 1;
+  string email = 2;
+  string password =3;
+}
+message AddUserResponse {
+  string id = 1;
+}
+message GetUserByIdRequest {
+  string id = 1;
+}
+message GetUserByNameOrEmail {
+  oneof unique {
+    string username = 1;
+    string email = 2;
+  }
+}
+message GetUserResponse {
+  string username = 1;
+  string email = 2;
+  string hashed_password = 3;
+}
+service User {
+  rpc AddUser (AddUserRequest) returns (AddUserResponse);
+  rpc GetUserById (GetUserByIdRequest) returns (GetUserResponse);
+  rpc GetUser (GetUserByNameOrEmail) returns (GetUserResponse);
+}
+
+```
+
+and .proto can be compiled to supported language by gRPC. For example, user.proto compiled and implemented in golang as a server
+
+```go
+//...
+type server struct {
+	usecase userSvc.Usecase
+	user.UnimplementedUserServer
+}
+
+func (s *server) AddUser(ctx context.Context, payload *user.AddUserRequest) (*user.AddUserResponse, error) {
+	resp, err := s.usecase.AddUser(ctx,
+		entites.User{
+			Username: payload.GetUsername(),
+			Email:    payload.GetEmail(),
+			Password: payload.GetPassword(),
+		})
+	if err != nil {
+		return nil, handleError(ctx, err)
+	}
+	return &user.AddUserResponse{Id: resp}, nil
+}
+func (s *server) GetUser(ctx context.Context, payload *user.GetUserByNameOrEmail) (*user.GetUserResponse, error) {
+	resp, err := s.usecase.GetUser(ctx, entites.UserIdentifier{
+		Username: payload.GetUsername(),
+		Email:    payload.GetEmail(),
+	})
+	if err != nil {
+		return nil, handleError(ctx, err)
+	}
+	return &user.GetUserResponse{
+		Username:       resp.Username,
+		Email:          resp.Email,
+		Hashedpassword: resp.Password,
+	}, nil
+}
+func (s *server) GetUserById(ctx context.Context, payload *user.GetUserByIdRequest) (*user.GetUserResponse, error) {
+	resp, err := s.usecase.GetUserById(ctx, payload.GetId())
+	if err != nil {
+		return nil, handleError(ctx, err)
+	}
+	return &user.GetUserResponse{
+		Username:       resp.Username,
+		Email:          resp.Email,
+		Hashedpassword: resp.Password,
+	}, nil
+}
+```
+
+and as a client, you just Dial it, and save the connection, for example of client implementation in Go
+
+```go
+func main() {
+userClient, err := grpc.Dial(os.Getenv("USER_SERVICE"), grpc.WithTransportCredentials(insecure.NewCredentials()))
+	if err != nil {
+		log.Fatalf("failed to dial user service client: %v", err)
+	}
+	defer userClient.Close()
+
+	userServiceClient := user.NewUserClient(userClient)
+}
+```
+
+and we just called it like it's a function, for example in the BFF-REST application using Gin
+
+
+```go
+type userHandler struct {
+	client user.UserClient
+}
+
+func (h *userHandler) PostUserHandler(ctx *gin.Context) {
+	var request struct {
+		Username      string `json:"username" binding:"required,min=5,max=50"`
+		Email         string `json:"email" binding:"required,email"`
+		PlainPassword string `json:"password" binding:"required,min=8"`
+	}
+	err := ctx.ShouldBindJSON(&request)
+	if err != nil {
+		ctx.AbortWithStatusJSON(http.StatusBadRequest, gin.H{
+			"errors": err.Error(),
+		})
+		return
+	}
+  // Call AddUser service
+	resp, err := h.client.AddUser(ctx, &user.AddUserRequest{
+		Username: request.Username,
+		Email:    request.Email,
+		Password: request.PlainPassword,
+	})
+	if err != nil {
+		ctx.AbortWithStatus(http.StatusInternalServerError)
+		return
+	}
+	ctx.JSON(http.StatusCreated, gin.H{
+		"status": "success",
+		"data": gin.H{
+			"id": resp.GetId(),
+		},
+	})
+}
+```
+
+So, if everything is self-managed and every microservice can use whatever languange they want, the contract should be in a github submodule, so a service can implement any. proto file and act as a “client” that calls to a “server” which is another service. for an example, you can implement it like this one below
+
+![protobuf schema](/img/blog/protobuf-schema.jpg)
+
+now after seeing implementation details of an implementation in go, let's talk about lifecycle and gRPC itself
+
+## gRPC Lice Cycle
+gRPC has four life cycle, its Unary, Server Streaming, Client Streaming, and Bidirectional Streaming, its beyond of scope this doc to talk about four of those, let's talk about Unary and how similar it is to REST 
+
+### Unary RPC
+
+1. Client Calls
+2. Server Response
+
+That’s It, basically like our beloved REST protocol, you can implement your own auth middleware in a gRPC, but first, you must be questioning like where do i put my auth token? in the request? do we have a **header like REST** to put our token and metadata? and the answer is yes, it's in the metadata, so you can have middleware to get token from **Metadata**, the example below is gRPC extract token from metadata implementation in Go
+
+```go
+package auth
+var (
+	headerAuthorize = "authorization"
+)
+
+
+func AuthFromMD(ctx context.Context, expectedScheme string) (string, error) {
+	val := metadata.ExtractIncoming(ctx).Get(headerAuthorize)
+	if val == "" {
+		return "", status.Error(codes.Unauthenticated, "Request unauthenticated with "+expectedScheme)
+	}
+	scheme, token, found := strings.Cut(val, " ")
+	if !found {
+		return "", status.Error(codes.Unauthenticated, "Bad authorization string")
+	}
+	if !strings.EqualFold(scheme, expectedScheme) {
+		return "", status.Error(codes.Unauthenticated, "Request unauthenticated with "+expectedScheme)
+	}
+	return token, nil
+}
+```
+
+And Implementing An auth middleware, for example in Go
+
+```go
+package middleware
+
+import (
+	"context"
+)
+func AuthFn(func (ctx context.Context)) (context.Context, error) {
+	token, err := auth.AuthFromMD(ctx, "bearer")
+	if err != nil {
+		return nil, err
+	}
+
+	userId, err :=parseTokenWithSecret(token)
+	if err != nil {
+		return nil, err
+	}
+
+	ctx =context.WithValue(ctx, "user-id", userId)
+	return ctx, nil
+}
+```
+
+and implementing middleware in when creating server in Go like example below
+
+```go
+package main
+import (
+"github.com/grpc-ecosystem/go-grpc-middleware/v2/interceptors/selector"
+"github.com/grpc-ecosystem/go-grpc-middleware/v2/interceptors/recovery"
+)
+func main() {
+	grpcSrv := grpc.NewServer(
+		grpc.ChainUnaryInterceptor(
+			// Order matters e.g. tracing interceptor have to create span first for the later exemplars to work.
+			// Otel unused Midleware
+			//otelgrpc.UnaryServerInterceptor(),
+			//srvMetrics.UnaryServerInterceptor(grpcprom.WithExemplarFromContext(exemplarFromContext)),
+			//logging.UnaryServerInterceptor(interceptorLogger(rpcLogger), logging.WithFieldsFromContext(logTraceID)),
+			
+			// authMiddleWare
+			selector.UnaryServerInterceptor(auth.UnaryServerInterceptor(middleware.AuthFn)),
+			
+			// Recovery Middleware
+			recovery.UnaryServerInterceptor(recovery.WithRecoveryHandler(grpcPanicRecoveryHandler)),
+		),
+	)
+}
+```
+and that's it about the happy path, you call sending the request, and you get the Expected Response, but what about unhappy path like error, how to handle it in gRPC?
+
+in the gRPC Handler in a clean code architecture, you should handle Error that coming from dependency above, like usecase and repository. i like it to have global ErrorHandler like REST architecture. for example, using default errsdetail.BadRequest
+
+```go
+package apperror
+import (
+	"context"
+	"errors"
+	"sql"
+	"google.golang.org/grpc/status"
+	"google.golang.org/grpc/codes"
+	"spb google.golang.org/genproto/googleapis/rpc/status"
+	"google.golang.org/genproto/googleapis/rpc/errdetails"
+)
+
+type AppError struct {
+	Err error
+	Message string
+	Detail map[string][]string
+}
+
+func (a AppError) Error() string {
+	return a.Err.Error()
+}
+
+func HandlegRPCError(ctx context.Context, err error) error {
+	if errors.Is(err, sql.ErrNoRows) {
+		return status.Error(codes.NotFound, "not found")
+	}
+
+	var appErr *AppError
+	if errors.As(err, &appErr) {
+		badRequest := &errdetails.BadRequest{}
+		for k, vs := range appErr.Detail {
+			for _, v := range vs {
+				badRequest.FieldViolations = append(
+					badRequest.FieldViolations,
+					&errdetails.BadRequest_FieldViolation{
+						Field:       k,
+						Description: v,
+					})
+			}
+
+		}
+		st, err := status.New(codes.InvalidArgument, "invalid").WithDetails(badRequest)
+		if err != nil {
+			panic(fmt.Sprintf("Unexpected error attaching metadata: %v", err))
+		}
+		return st.Err()
+	}
+	span := trace.SpanFromContext(ctx)
+	span.RecordError(err)
+	log.Println(err)
+	return err
+}
+
+func HandlegRPCError(ctx context.Context, err error) error {
+	//your implementation on handling error in Http Protocol
+}
+```
+
+you can implement your own error type too in protobuf and replace the errdetails with your own error type.
+
+and after that, we can catch those error in the client like
+
+```go
+st := status.Convert(err)
+for _, detail := range st.Details() {
+    switch t := detail.(type) {
+    case *errdetails.BadRequest:
+        fmt.Println("Oops! Your request was rejected by the server.")
+        for _, violation := range t.GetFieldViolations() {
+            fmt.Printf("The %q field was wrong:\n", violation.GetField())
+            fmt.Printf("\t%s\n", violation.GetDescription())
+        }
+    }
+}
+```
+
+i Think thats it, you can explore Protobuf in below:
+
+---
+
+https://protobuf.dev/
+
+gRPC in golang here:
+
+https://grpc.io/docs/languages/go/quickstart/
+
+useful middleware in golang here:
+
+[https://github.com/grpc-ecosystem/go-grpc-middleware](https://github.com/grpc-ecosystem/go-grpc-middleware/tree/main)
+
+my unfinished repository about grpc-research as service communications
+
+https://github.com/Xyedo/grpc-research
