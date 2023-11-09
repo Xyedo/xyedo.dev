@@ -33,7 +33,7 @@ Let's just focus on proto3 for now and see the big Picture
 
 to define a Message Type, its
 
-```proto
+```go
 syntax = "proto3"
 
 message AddUserRequest {
@@ -72,7 +72,7 @@ just a bool true and false and default values is false
 #### Enum
 
 you can define your own Enum's, and default values is the field number zero, so your Enum's must have zero field number, with example
-```proto
+```go
 enum DeliveryOrderStatus {
 	DELIVERY_ORDER_UNSPECIFIED = 0;
 	DELIVERY_ORDER_DRAFT = 1;
@@ -84,7 +84,7 @@ enum DeliveryOrderStatus {
 
 field number should be unique among of all its message and should never be reused, if we want to extend the API contract, just use new field number, if we need to delete Fields and we want to maintain backward compatibility, we used reserved keyword, for example
 
-```proto
+```go
 syntax = "proto3"
 
 message AddUserRequest {
@@ -96,7 +96,7 @@ message AddUserRequest {
 
 or just doesn’t bother with reserved keyword and create AddUserRequestV2
 
-```proto
+```go
 syntax = "proto3"
 
 message AddUserRequestV2 {
@@ -108,7 +108,7 @@ message AddUserRequestV2 {
 
 If we don’t have label like the example above, it implicitly presence, so it always set to zero values when user/client doesn’t set the value, so we don't know when is user set zero value or user doesn't send the value, so, how we implement REST-PATCH solution in gRPC? we use optional, for example
 
-```proto
+```go
 message UpdateUserRequest {
   optional string username = 1;
   optional string email = 2;
@@ -122,7 +122,7 @@ so, we can check if it's the value has been set by the user, in the implementati
 What about **array**? we use field labels repeated for that, for example
 
 
-```proto
+```go
 message PostTagResponse {
   repeated string tags 1;
 }
@@ -131,7 +131,7 @@ message PostTagResponse {
 ### Message Type
 you can nest your message type, for example
 
-```proto
+```go
 message ListResponse {
   message Metadata {
 		// your data types
@@ -151,7 +151,7 @@ I think that's it, there's another good feature in gRPC that is worth mentioning
 ---
 Let's Go to the next Step with Service, which creates explicit contract between your client and your server. Basically, it just an interface with Input and Output, for example, a whole user.proto file is like this
 
-```proto
+```go
 syntax="proto3";
 package user;
 
