@@ -58,6 +58,7 @@ export default defineConfig({
     solid({
       extensions: [".mdx", ".md"],
       adapter: vercel(),
+      islands: false,
     }),
   ],
 });
