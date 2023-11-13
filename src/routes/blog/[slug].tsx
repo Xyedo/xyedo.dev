@@ -8,13 +8,15 @@ import ArticleSection from "~/components/section/article-section";
 
 export function routeData({ params }: any) {
   const [article] = createResource(async () => {
-    return await blogList[params.slug].body();
+    return blogList[params.slug].body();
   });
+  
   return {
     get details() {
       return blogList[params.slug];
     },
     get article() {
+      
       return article;
     },
   };
@@ -26,6 +28,7 @@ const Blog: Component = () => {
   const readingTime = () => data.article()?.readingTime;
   const blog = () => data.article()?.default;
   const currHeading = createScrollSpy(sections);
+  
   return (
     <>
       <SEO
