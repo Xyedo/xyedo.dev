@@ -1,33 +1,33 @@
 # gRPC as Microservice Communication
 
-## GRPC
+# GRPC
 lets start this blog by asking some question about grpc
 
-### What is gRPC?
+## What is gRPC?
 
 Grpc is another HTTP protocol like REST, grpc stands for Google Remote Produceral Call. It Turn your code into calling a remote function using a contract called service, let's dive into the fundamental and why it's important.
 
-### What’s gRPC used to exchange data?
+## What’s gRPC used to exchange data?
 
 In a REST World, we concatenate anything into a string using JSON, instead using JSON, grpc use Protocol Buffer, Protocol Buffer is just another form to exchange data between systems, lets save that in our brain, and ask more important question
 
-### Why gRPC?
+## Why gRPC?
 In a monolith architecture, it just functions call, right? wanna access the identity of a user? just function call straight into the db table and just find it, as simple as it is. 
 
 Well, in a microservices world, we have to call the other domain to access the data we need. On the first iteration of the product, we just use what is already working (REST) and flying data over the network to get the data we need and that is a problem. users don't really know and maybe dont wanna know what we are using to get their data, as long as it fast and stable, the users are happy. 
 
 Well, REST is not that fast, in almost all benchmark, we’ll see gRPC with protobuf beats REST with JSON, and question arises
 
-### Why We Need Faster Protocol than REST?
+## Why We Need Faster Protocol than REST?
 
  think it's natural for us to have a question like that, and like all of our beloved seniors, the answer depends, if it's like our core service that need communications must be that fast, we have an option in our toolbelt now, its gRPC. When you implement your backend architecture with clean architecture, you can easily add gRPC without changing your code.
 
-### They use the same HTTP Protocol, but why gRPC faster?
+## They use the same HTTP Protocol, but why gRPC faster?
 
 It's the protobuf, unlike JSON that uses string and just send it out, in a protobuf, the payload is encoded into binary, thats play important role on why gRPC is faster. now we have the big picture on why gRPC, lets dive-in into Protobuf
 
 
-## Protocol Buffer (Protobuf)
+# Protocol Buffer (Protobuf)
 
 Let's just focus on proto3 for now and see the big Picture
 
@@ -46,10 +46,10 @@ message AddUserRequest {
 
 To Use proto3, we need add proto3 as a syntax and add name of object, in this case, is AddUserRequest, its object value type as an example, username has a datatype string and has a field number of 1, lets tackle that one by one, start by data type
 
-### Data Type
+## Data Type
 you can read all the details in here, i just cover the big picture, every data types have a default values, if you don't set the values, it becomes to the default values, (if you are asking question like how to differentiate between default values and user set to zero values, we have the answer, just bear with me)
 
-#### Numeric
+### Numeric
 
 Default values is zero
 
@@ -57,19 +57,19 @@ floating number has double (float64) and float (float32)
 
 whole number has int32,int64, uint32, uint64, and has exotic types like sint32, sint64, fixed64 etc that has specific purpose for efficiency, lets focus on regular type 
 
-#### String
+### String
 
 its just a string and default values is empty string
 
-#### Bytes
+### Bytes
 
 its just a bytes and default values is empty bytes
 
-#### Bool
+### Bool
 
 just a bool true and false and default values is false
 
-#### Enum
+### Enum
 
 you can define your own Enum's, and default values is the field number zero, so your Enum's must have zero field number, with example
 ```go
@@ -80,7 +80,7 @@ enum DeliveryOrderStatus {
 	DELIVERY_ORDER_SCHEDULED =3;
 }
 ```
-### Field Number
+## Field Number
 
 field number should be unique among of all its message and should never be reused, if we want to extend the API contract, just use new field number, if we need to delete Fields and we want to maintain backward compatibility, we used reserved keyword, for example
 
@@ -104,7 +104,7 @@ message AddUserRequestV2 {
 }
 ```
 
-### Field Labels
+## Field Labels
 
 If we don’t have label like the example above, it implicitly presence, so it always set to zero values when user/client doesn’t set the value, so we don't know when is user set zero value or user doesn't send the value, so, how we implement REST-PATCH solution in gRPC? we use optional, for example
 
@@ -128,7 +128,7 @@ message PostTagResponse {
 }
 ```
 
-### Message Type
+## Message Type
 you can nest your message type, for example
 
 ```go
@@ -293,10 +293,10 @@ So, if everything is self-managed and every microservice can use whatever langua
 
 now after seeing implementation details of an implementation in go, let's talk about lifecycle and gRPC itself
 
-## gRPC Lice Cycle
+# gRPC Lice Cycle
 gRPC has four life cycle, its Unary, Server Streaming, Client Streaming, and Bidirectional Streaming, its beyond of scope this doc to talk about four of those, let's talk about Unary and how similar it is to REST 
 
-### Unary RPC
+## Unary RPC
 
 1. Client Calls
 2. Server Response

@@ -21,7 +21,7 @@ type Props = {
   section: Section[] | undefined;
   currHeading: string | null;
 };
-
+//TODO: dropdown TOC
 const TableOfContent: Component<Props> = (props) => {
   const themeCtx = useThemeCtx();
   const textColor = (currHead: string) => {
@@ -47,13 +47,13 @@ const TableOfContent: Component<Props> = (props) => {
             <Show when={firstLevel.children}>
               <ul>
                 <For each={firstLevel.children}>
-                  {(secondLevel, idx) => (
+                  {(secondLevel, secondIdx) => (
                     <SectionButton
                       title={secondLevel.value}
                       class={`text-secondary hover:text-primary list-none ml-4 my-2
                       `}
                       classList={{
-                        "mb-2": idx() === firstLevel.children!.length,
+                        "mb-2": secondIdx() === firstLevel.children!.length,
                       }}
                       style={textColor(slug(secondLevel.value))}
                       href={`#${slug(secondLevel.value)}`}
@@ -61,7 +61,7 @@ const TableOfContent: Component<Props> = (props) => {
                       <Show when={secondLevel.children}>
                         <ul>
                           <For each={secondLevel.children}>
-                            {(thirdLevel, idx) => (
+                            {(thirdLevel, thridIdx) => (
                               <SectionButton
                                 title={thirdLevel.value}
                                 class={
@@ -69,8 +69,9 @@ const TableOfContent: Component<Props> = (props) => {
                                 }
                                 classList={{
                                   "mb-2":
-                                    idx() === secondLevel.children!.length,
+                                    thridIdx() === secondLevel.children!.length,
                                 }}
+                                style={textColor(slug(thirdLevel.value))}
                                 href={`#${slug(thirdLevel.value)}`}
                               />
                             )}

@@ -38,8 +38,9 @@ const walkSections = (
   sections: Section[] | undefined,
   flatsection: Omit<Section, "children">[] = []
 ): Omit<Section, "children">[] => {
+
   if (!sections) return flatsection;
-  if (sections.length === 0) return flatsection;
+
   for (let i = 0; i < sections.length; i++) {
     flatsection.push(sections[i]);
     walkSections(sections[i].children, flatsection);
