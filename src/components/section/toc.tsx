@@ -1,27 +1,49 @@
 import { slug } from "github-slugger";
-import { Component, For, JSX, ParentComponent, Show } from "solid-js";
+import {
+  Component,
+  For,
+  JSX,
+  ParentComponent,
+  Show,
+  children,
+  createSignal,
+} from "solid-js";
 import { useThemeCtx } from "~/context/ThemeProvider";
 import { Section } from "~/types";
-
+import { FiChevronDown } from "solid-icons/fi";
 const SectionButton: ParentComponent<{
   href: string;
   title: string;
   class?: string;
   style?: string | JSX.CSSProperties | undefined;
   classList?: { [k: string]: boolean | undefined };
-}> = (props) => (
-  <li class={props.class} style={props.style} classList={props.classList}>
-    <a href={props.href} target="_self">
-      {props.title}
-    </a>
-    {props.children}
-  </li>
-);
+  collasible?: {
+    children: Section[] | undefined;
+    open?: boolean;
+  };
+}> = (props) => {
+  const [open, setOpen] = createSignal<boolean>(!props.collasible || Boolean(props.collasible.open));
+
+  const handleCollapsible = () => setOpen((v) => !v);
+  return (
+    <li class={props.class} style={props.style} classList={props.classList}>
+      <span class="hover:cursor-pointer flex justify-between">
+        <a href={props.href} target="_self">
+          {props.title}
+        </a>
+        <Show when={props.collasible && props.collasible.children?.length != 0}>
+          <FiChevronDown onClick={handleCollapsible} class="mt-1" />
+        </Show>
+      </span>
+      <Show when={open()}>{props.children}</Show>
+    </li>
+  );
+};
 type Props = {
   section: Section[] | undefined;
   currHeading: string | null;
 };
-//TODO: dropdown TOC
+
 const TableOfContent: Component<Props> = (props) => {
   const themeCtx = useThemeCtx();
   const textColor = (currHead: string) => {
@@ -43,6 +65,10 @@ const TableOfContent: Component<Props> = (props) => {
             class={`text-secondary list-none transition mb-2 hover:text-primary`}
             style={textColor(slug(firstLevel.value))}
             href={`#${slug(firstLevel.value)}`}
+            collasible={{
+              children: firstLevel.children,
+              open:  firstLevel.children && firstLevel.children.length <5
+            }}
           >
             <Show when={firstLevel.children}>
               <ul>
@@ -57,6 +83,9 @@ const TableOfContent: Component<Props> = (props) => {
                       }}
                       style={textColor(slug(secondLevel.value))}
                       href={`#${slug(secondLevel.value)}`}
+                      collasible={{
+                        children: secondLevel.children,
+                      }}
                     >
                       <Show when={secondLevel.children}>
                         <ul>
