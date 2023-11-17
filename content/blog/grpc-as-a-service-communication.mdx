@@ -81,9 +81,12 @@ enum DeliveryOrderStatus {
 }
 ```
 ## Field Number
+Field number is an alias to a key in a protobuf,so it can encode the value efficiently.
 
-field number should be unique among of all its message and should never be reused, if we want to extend the API contract, just use new field number, if we need to delete Fields and we want to maintain backward compatibility, we used reserved keyword, for example
+Because the field number is a key in the protobuf implementation, it should be unique among of all its message and should never be reused to handle evolvability (backward compatibility and future compatibility).
 
+
+If we want to extend the API contract, just use new field number, if we need to delete Fields and we want to maintain backward compatibility, we used reserved keyword, for example
 ```go
 syntax = "proto3"
 
@@ -289,7 +292,7 @@ func (h *userHandler) PostUserHandler(ctx *gin.Context) {
 
 So, if everything is self-managed and every microservice can use whatever languange they want, the contract should be in a github submodule, so a service can implement any. proto file and act as a “client” that calls to a “server” which is another service. for an example, you can implement it like this one below
 
-![protobuf schema](/img/blog/protobuf-schema.jpg)
+![protobuf schema](https://github.com/Xyedo/xyedo.dev/blob/master/public/img/blog/protobuf-schema.png?raw=true)
 
 now after seeing implementation details of an implementation in go, let's talk about lifecycle and gRPC itself
 

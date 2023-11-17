@@ -11,6 +11,7 @@ export default function createScrollSpy(
   onMount(() => {
     scrollPosition = createScrollPosition();
   });
+
   const scrollSpy = throttle((position: number) => {
     if (!sections()) {
       return;
