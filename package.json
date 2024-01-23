@@ -21,7 +21,7 @@
     "remark-mdx-toc": "^0.3.1",
     "remark-reading-time": "^2.0.1",
     "solid-start-node": "^0.2.26",
-    "solid-start-vercel": "^0.2.11",
+    "solid-start-vercel": "^0.3.10",
     "tailwindcss": "^3.4.1",
     "typescript": "^4.9.5",
     "vite": "^3.2.8"
