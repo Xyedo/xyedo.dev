@@ -1,0 +1,667 @@
+# Database Concurrency Problem
+
+We All Know about RDBMS [ACID](https://en.wikipedia.org/wiki/ACID) Properties, In this Article, lets focus about Atomicity and Isolation, To Achieve Atomicity Operation, the RDBMS Database provided with Transaction to Either Commit All Success Changes and Abort All if one fail. And If combined with Isolation, we can achieve our set to become a serious app, if you didn’t know  transaction and its Isolation Level, please check this [PostgreSQL Documentation](https://www.postgresql.org/docs/current/transaction-iso.html).
+
+When Transaction combined With Isolation, what isolation level should i use? if it affect performance?  how about race condition within concurrent transaction? we all have that question, 
+
+So Lets Start with Problem and then talk about the solution, its very common about the young (even myself) not knowing about the problem but understand the database isolation, so we gained nothing the database isolation because we don’t know what is the difference and what problem it solves, Lets Talk About The Problem one by One
+
+## Concurrency Problem
+
+### Dirty Reads
+
+Dirty Read meaning when we read from the database, we also read another uncommitted changes concurrently
+
+![Dirty Read](/img/blog/dirty-reads.png)
+
+it can be prevented by Read Committed Isolation Level and not allowed in most RDBMS, but on some vendors can be toggled by using Read Uncommited Isolation Level 
+
+### Dirty Writes
+
+![Dirty Writes](/img/blog/dirty-writes.png)
+
+When two concurrent transaction trying to update the same object in database, and earlier write is part of a transaction that has not yet committed, so he later transaction overwrite an uncommitted transaction
+
+Read Committed Isolation Level prevent dirty writes by locking the row when write (UPDATE, DELETE) to ensure no dirty write, so the later transaction wait until the earlier write is committed or aborted
+
+However, Preventing the Dirty Writes doesn't prevent Lost Update, consider this case
+
+![Lost Update](/img/blog/lost-update.png)
+
+The Expected Behavior is the counter should be 3, incremented one by User 1 and Incremented one by User 2, but it resulted 2, It encounter another Problem, [Lost Update](#lost-update)
+
+
+### Non Repeatable Read
+
+![Non Repeatable Read](/img/blog/lost-update.png)
+
+Alices has $1000 that split equally between two account, when it transferred, it become 600 on account 1, and 400 on account 2, and in between the transferred, Alice Read its balance, in account A is 500 and in Account B is 400 and has total $900 even though she has $1000,
+
+If Alice refresh, it indeed becoming $1000 again, if you tolerate this temporary inconsistency, you can use Read Committed Isolation Level, However we have some situation that we cannot tolerate those inconsistencies, for example when doing backup, Alice $100 money is gone, when doing analytics queries and integrity checks.
+
+The Non Repeatable Read can prevented by Read Committed Isolation Level, In PostgreSQL implementation level, it already has MVCC, so how performance it the isolation level? we will talk the [benchmark]() on another section, hang on!
+
+### Lost Update
+You have already know about Lost Update problem because we encounter it when we prevent dirty write, lost update problem can occurred when we have read-modify-write cycle, We Read something in the database, modify it, and then write it back, for example:
+
+- Increment A Counter: read a database, increment it, and write it again to the database
+- Two Users Editing a collaborating document (wiki, forum, notes): when two users editing the page at the same time, it overwriting whatever is currently in the database
+
+because this problem is common, we have variety of solutions, such as
+
+- Atomic Operation
+    
+    ```sql
+    UPDATE view_counter SET value = value +1 where document_id = ?;
+    ```
+    
+- Explicit Locking on Row Based Level:
+    
+    For Update Lock rows that returns from SELECT within the transaction, whenever another concurrent transaction want to change (SELECT FOR UPDATE, UPDATE, DELETE), it must wait until this transaction committed or aborted 
+    
+    ```sql
+    BEGIN TRANSACTION;
+    
+    SELECT *
+    FROM forum
+    WHERE id = $1
+    FOR UPDATE; 
+    
+    ---- do some validation and then Change the Forum
+    UPDATE forum SET content = $2 where id = $1
+    
+    COMMIT;
+    ```
+    
+    However this is must implemented carefully, its easy to forget to add lock and we are not careful, we might be locking more row that it should be
+    
+- Automatically detecting lost updates:
+    
+    By Using Repeatable Read In PostgreSQL, whenever the lost update is detected, the transaction will return error with Code 40001, we must retry it on the application level
+
+We Will [Benchmark](#lost-update-benchmark) Using Lock, Repeatable Read, and Compare And Set method too see in which throughput is good and its trade off, but for now, we will go to the next concurrency problem
+
+### Write Skew
+
+This problem is generalized whenever we read the database, and based on that read, we cant abort if its not met the validation or continue the transaction to insert or update, for example, we have doctor, the requirement is at least we have 1 doctor in the ER, if two doctor click on_leave at the same time, this can happened:
+
+![Write Skwe](/img/blog/write-skew.png)
+
+But That Problem Is Easily Solved By Select … FOR UPDATE
+
+Another Example:
+
+- Hotel system who cannot double-booking
+    
+    ```sql
+    BEGIN TRANSACTION;
+    
+    SELECT COUNT(1) FROM hotel_books
+     WHERE hotel_id = $1 AND
+     room = $2
+     end_time > $4 AND start_time < $3;
+    -- If the query above returned non zero, abort;
+    -- If the query above returned zero, insert hotel_books
+    
+    INSERT INTO hotel_books
+     (hotel_id, room, start_time, end_time, user_id)
+     VALUES ($1,$2,$3,$4,$5);
+    COMMIT;
+    ```
+    
+    This Cannot Solved By For Update because the returning is either zero or many, whenever it returned zero, it locks on nothing, so double booking can happened
+    
+- Claiming Username / Phone_Number / Email on User:
+    
+    In the Application Code, we usually do this:
+    
+    1. Read if Username is not found on the database
+    2. If username found, return 400 and abort the transaction
+    3. If username not found, insert the username to the database, return 200
+    
+    This Can Easily Solved By Unique Constraint
+    
+
+On All of those example, the pattern is read, check, and do something based the first read. 
+
+All of those example can easily avoided using Serializable Isolation level, but how performance is serializable? 
+
+in PostgreSQL serializable implementation is using SSI (Serializable Snapshot Isolation) which mean it based on Repeatable Read Isolation Level and added detecting the write skew and phantom read on commit, whenever it has a phantom read or write skew, it aborted.  So, it added overhead to keep all concurent transaction and the check on commit.
+
+## Isolation Level Benchmark in PostgreSQL
+
+Lets benchmark All these Isolation Level to know what isolation level we should use
+
+as an example, we want to implement forum, that user can write, comment, add reaction to it
+
+```sql
+CREATE EXTENSION IF NOT EXISTS citext;
+
+CREATE TABLE IF NOT EXISTS ACCOUNT (
+  id TEXT PRIMARY KEY,
+  username CITEXT UNIQUE,
+  phone_number CITEXT UNIQUE,
+  email CITEXT UNIQUE,
+  hashed_password TEXT NOT NULL,
+  is_deleted BOOLEAN NOT NULL DEFAULT FALSE,
+  created_on TIMESTAMPTZ NOT NULL,
+  updated_on TIMESTAMPTZ,
+  version BIGINT NOT NULL DEFAULT 1
+);
+
+CREATE TABLE IF NOT EXISTS THREAD (
+  id TEXT PRIMARY KEY,
+  title TEXT NOT NULL,
+  body TEXT NOT NULL,
+  total_comment BIGINT NOT NULL DEFAULT 0,
+  total_reaction BIGINT NOT NULL DEFAULT 0,
+  created_by TEXT NOT NULL REFERENCES ACCOUNT ON DELETE CASCADE,
+  created_on TIMESTAMPTZ NOT NULL,
+  updated_by TEXT REFERENCES ACCOUNT ON DELETE CASCADE,
+  updated_on TIMESTAMPTZ,
+  is_deleted BOOLEAN NOT NULL DEFAULT FALSE,
+  version BIGINT NOT NULL DEFAULT 1
+);
+
+CREATE TABLE IF NOT EXISTS COMMENT (
+  id TEXT PRIMARY KEY,
+  thread_id TEXT NOT NULL REFERENCES THREAD ON DELETE CASCADE,
+  user_id TEXT NOT NULL REFERENCES ACCOUNT ON DELETE CASCADE,
+  reply_to TEXT REFERENCES COMMENT ON DELETE CASCADE,
+  content TEXT NOT NULL,
+  total_reply BIGINT NOT NULL DEFAULT 0,
+  total_reaction BIGINT NOT NULL DEFAULT 0,
+  created_on TIMESTAMPTZ NOT NULL,
+  updated_on TIMESTAMPTZ,
+  is_deleted BOOLEAN NOT NULL DEFAULT FALSE,
+  version BIGINT NOT NULL DEFAULT 1
+);
+
+CREATE TABLE IF NOT EXISTS REACTION (
+  id TEXT PRIMARY KEY,
+  account_id TEXT NOT NULL REFERENCES ACCOUNT ON DELETE CASCADE,
+  thread_id TEXT REFERENCES THREAD ON DELETE CASCADE,
+  comment_id TEXT REFERENCES COMMENT ON DELETE CASCADE,
+  content VARCHAR(100) NOT NULL,
+  created_on TIMESTAMPTZ NOT NULL,
+  updated_on TIMESTAMPTZ,
+  version BIGINT NOT NULL DEFAULT 1
+);
+```
+
+In this Benchmark we use Golang, PostgreSQL, and pgx as a postgresql driver. We will benchmark the perfomance based on single object and multiple object
+
+### Single Object
+
+We Using Read Modify Write to Account table with various transaction level
+
+```go
+func ReadModifyWriteUser(ctx context.Context, txOpt pgx.TxOptions, userId string) error {
+	return db.Atomic(ctx, txOpt, func(tx db.Connection) error {
+		account, err := repository.GetAccount(ctx, tx, userId)
+		if err != nil {
+			return err
+		}
+
+		account.Username = helper.ToPointer(faker.Username())
+		account.Email = helper.ToPointer(faker.Email())
+		return repository.UpdateAccount(ctx, tx, account)
+	})
+}
+```
+
+### Multiple Object
+
+On multiple object, we added a comment to a thread, and increment the counter to the thread
+
+```go
+func ReadModifyWriteComment(ctx context.Context, txOpt pgx.TxOptions, userId, threadId string) error {
+	return db.Atomic(ctx, txOpt, func(tx db.Connection) error {
+		_, err := repository.GetAccount(ctx, tx, userId)
+		if err != nil {
+			return err
+		}
+
+		thread, err := repository.GetThread(ctx, tx, threadId)
+		if err != nil {
+			return err
+		}
+
+		commentId := helper.CommentId()
+		err = repository.CreateComment(ctx, tx, repository.Comment{
+			Id:        commentId,
+			ThreadId:  threadId,
+			UserId:    userId,
+			Content:   faker.Sentence(),
+			CreatedOn: time.Now(),
+			Version:   1,
+		})
+		if err != nil {
+			return err
+		}
+
+		thread.TotalComment++
+		return repository.UpdateThread(ctx, tx, thread)
+	})
+}
+```
+
+The db.Atomic is wrapped Transaction that when returned error, it will rollback, and if returned nil, it will commit
+
+```go
+package db
+
+func Atomic(ctx context.Context, txOpt pgx.TxOptions, cb func(tx Connection) error) error {
+	conn, err := GetConnection(ctx)
+	if err != nil {
+		return err
+	}
+	defer conn.Release()
+
+	tx, err := conn.BeginTx(ctx, txOpt)
+	if err != nil {
+		return err
+	}
+
+	err = cb(tx)
+	if err != nil {
+		if rbErr := tx.Rollback(ctx); rbErr != nil {
+			return fmt.Errorf("cannot rollback %w: %w", rbErr, err)
+		}
+
+		return err
+	}
+
+	return tx.Commit(ctx)
+}
+```
+
+### Result
+
+![Benchmark Isolation Level](/img/blog/benchmark-isolation-level.png)
+
+We can easily see that Read Committed  and Repeatable Read Isolation level can be use interchangeably because the performance is quite the same, so when not sure which one to use, use Repeatable Read Isolation Level
+
+and On Serializable Isolation level, the performance drop a little, so whenever we are sure the problem that we are facing is can be solved by lower isolation level, use the lower isolation level
+
+## Lost Update Benchmark
+
+On the Lost update section, we have variety of solution, but which one is good for throughput and good for consistency? Lest benchmark those by doing Add Reaction To Thread by Insert Row to Reaction Table and Increment Thread Reaction Counter
+
+- Row Lock
+    
+    For Row Lock solution, we use default isolation level, which is read Committed
+    
+    ```go
+    type ForUpdate struct{}
+    
+    func (f ForUpdate) Do(ctx context.Context, threadId, userId string) error {
+    	return f.readModifyWriteReactionToThreadId(ctx,
+    		pgx.TxOptions{},
+    		threadId,
+    		userId,
+    	)
+    }
+    func (ForUpdate) readModifyWriteReactionToThreadId(
+    	ctx context.Context,
+    	txOpt pgx.TxOptions,
+    	threadId,
+    	userId string,
+    ) error {
+    	return db.Atomic(ctx, txOpt, func(tx db.Connection) error {
+    		thread, err := repository.GetThread(ctx, tx,
+    			threadId,
+    			repository.GetThreadOption{
+    				ForUpdate: true,
+    			},
+    		)
+    		if err != nil {
+    			return err
+    		}
+    
+    		_, err = repository.GetAccount(ctx, tx, userId)
+    		if err != nil {
+    			return err
+    		}
+    
+    		err = repository.CreateReaction(ctx, tx, repository.Reaction{
+    			Id:        helper.ReactionId(),
+    			AccountId: userId,
+    			ThreadId:  &threadId,
+    			Content:   "like",
+    			CreatedOn: time.Now(),
+    			Version:   1,
+    		})
+    		if err != nil {
+    			return err
+    		}
+    
+    		thread.TotalReaction++
+    		return repository.UpdateThread(ctx, tx, thread)
+    	})
+    }
+    ```
+    
+- Repeatable Read
+    
+    For Repeatable Read that automatically detect the Lost Update, we can just implemented retry on the application level and forget about the lock, whenever errors code is 40001, we retry it until retry counter reach maximum and return error max retry, so implementation retriable Transaction is becoming like this
+    
+    ```go
+    const maxRetry = 5
+    
+    func AtomicWithAutoRetry(
+    	ctx context.Context,
+    	txOpt pgx.TxOptions,
+    	cb func(tx Connection) error,
+    ) error {
+    	return transaction(ctx, txOpt, cb, maxRetry)
+    }
+    
+    var ErrLimitRetry = errors.New("retry limit exceeded!")
+    
+    func transaction(
+    	ctx context.Context,
+    	txOpt pgx.TxOptions,
+    	cb func(tx Connection) error,
+    	retry int,
+    ) error {
+    	if retry < 0 {
+    		return ErrLimitRetry
+    	}
+    
+    	conn, err := GetConnection(ctx)
+    	if err != nil {
+    		return err
+    	}
+    	defer conn.Release()
+    
+    	tx, err := conn.BeginTx(ctx, txOpt)
+    	if err != nil {
+    		return err
+    	}
+    
+    	err = cb(tx)
+    	if err != nil {
+    		if rbErr := tx.Rollback(ctx); rbErr != nil {
+    			return fmt.Errorf("cannot rollback %w: %w", rbErr, err)
+    		}
+    		var pgErr *pgconn.PgError
+    		if errors.As(err, &pgErr) && pgErr.Code == "40001" {
+    			return transaction(ctx, txOpt, cb, retry-1)
+    
+    		}
+    		return err
+    
+    	}
+    
+    	return tx.Commit(ctx)
+    
+    }
+    ```
+    
+    And The Implementation is Becoming more simple
+    
+    ```go
+    type RepeatableRead struct{}
+    
+    func (r RepeatableRead) Do(
+    	ctx context.Context,
+    	threadId,
+    	userId string,
+    ) error {
+    	return r.readModifyWriteReactionToThreadId(
+    		ctx,
+    		pgx.TxOptions{
+    			IsoLevel: pgx.RepeatableRead,
+    		},
+    		threadId,
+    		userId,
+    	)
+    }
+    
+    func (RepeatableRead) readModifyWriteReactionToThreadId(
+    	ctx context.Context,
+    	txOpt pgx.TxOptions,
+    	threadId,
+    	userId string,
+    ) error {
+    	return db.AtomicWithAutoRetry(ctx, txOpt, func(tx db.Connection) error {
+    		thread, err := repository.GetThread(ctx, tx, threadId)
+    		if err != nil {
+    			return err
+    		}
+    
+    		_, err = repository.GetAccount(ctx, tx, userId)
+    		if err != nil {
+    			return err
+    		}
+    
+    		err = repository.CreateReaction(ctx, tx, repository.Reaction{
+    			Id:        helper.ReactionId(),
+    			AccountId: userId,
+    			ThreadId:  &threadId,
+    			Content:   "like",
+    			CreatedOn: time.Now(),
+    			Version:   1,
+    		})
+    		if err != nil {
+    			return err
+    		}
+    
+    		thread.TotalReaction++
+    		return repository.UpdateThread(ctx, tx, thread)
+    	})
+    }
+    ```
+    
+- Compare And Set
+    
+    In the compare And Set, we don’t use transaction at all to following with premise distributed system that transaction is not available, so we retry with manual abort
+    
+    ```go
+    type CompareAndSet struct{}
+    
+    func (c CompareAndSet) Do(
+    	ctx context.Context,
+    	threadId,
+    	userId string,
+    ) error {
+    	return c.readModifyWriteReactionToThreadId(ctx, threadId, userId)
+    }
+    
+    func (CompareAndSet) readModifyWriteReactionToThreadId(
+    	ctx context.Context,
+    	threadId,
+    	userId string,
+    ) error {
+    	conn, err := db.GetConnection(ctx)
+    	if err != nil {
+    		return err
+    	}
+    
+    	_, err = repository.GetAccount(ctx, conn, userId)
+    	if err != nil {
+    		return err
+    	}
+    	conn.Release()
+    
+    	return db.RetryMatchAndSet(ctx, func(conn db.Connection) error {
+    		thread, err := repository.GetThread(ctx, conn, threadId)
+    		if err != nil {
+    			return err
+    		}
+    
+    		reactionId := helper.ReactionId()
+    		err = repository.CreateReaction(ctx, conn, repository.Reaction{
+    			Id:        reactionId,
+    			AccountId: userId,
+    			ThreadId:  &threadId,
+    			Content:   "like",
+    			CreatedOn: time.Now(),
+    			Version:   1,
+    		})
+    		if err != nil {
+    			//in a production environtment we need to deleteReaction in case its already created but failed to send a success response back
+    			// _ = repository.DeleteReaction(ctx, conn, reactionId)
+    			return err
+    		}
+    
+    		thread.TotalReaction++
+    		err = repository.UpdateThread(ctx, conn, thread, repository.UpdateThreadOption{
+    			CompareAndSet: &repository.CompareAndSetOption{
+    				Version: thread.Version,
+    			},
+    		})
+    		if err != nil {
+    			//in a production environtment we need to rollback UpdateThread to its previous State in case its already updated but failed to send a success response back
+    			// _ = repository.UpdateThread(ctx, conn, oldThread)
+    			_ = repository.DeleteReaction(ctx, conn, reactionId)
+    
+    			return err
+    		}
+    
+    		return nil
+    	})
+    }
+    ```
+    
+    The RetryMatchAndSet will retry the callback whenever the ErrVersionMismatch is returned
+    
+    ```go
+    const maxRetry = 5
+    var ErrVersionMisMatch = errors.New("version mismacth, must retry")
+    
+    func RetryMatchAndSet(ctx context.Context, cb func(conn Connection) error) error {
+    	conn, err := GetConnection(ctx)
+    	if err != nil {
+    		return err
+    	}
+    	defer conn.Release()
+    
+    	var errToTry error
+    
+    	retryCount := 0
+    	for retryCount < maxRetry {
+    		errToTry = cb(conn)
+    		if errToTry != nil && !errors.Is(errToTry, ErrVersionMisMatch) {
+    			return errToTry
+    		}
+    
+    		retryCount++
+    	}
+    
+    	if retryCount == maxRetry {
+    		return ErrLimitRetry
+    	}
+    
+    	return nil
+    }
+    ```
+    
+    And We Do Test to check all of those method
+    
+    ```go
+    type Reaction interface {
+    	Do(ctx context.Context, threadId, userId string) error
+    }
+    
+    func TestReactionCounter(t *testing.T) {
+    	ctx := context.Background()
+    	tests := []struct {
+    		name     string
+    		reaction Reaction
+    	}{
+    		{
+    			name:     "locking",
+    			reaction: lostupdatebenchmark.ForUpdate{},
+    		},
+    		{
+    			name:     "repeatable read",
+    			reaction: lostupdatebenchmark.RepeatableRead{},
+    		},
+    		{
+    			name:     "compare and set",
+    			reaction: lostupdatebenchmark.CompareAndSet{},
+    		},
+    	}
+    	for _, tt := range tests {
+    		userId, err := helper.CreateUser()
+    		require.NoError(t, err)
+    		threadId, err := helper.CreateThread(userId)
+    		require.NoError(t, err)
+    		t.Run(tt.name, func(t *testing.T) {
+    			start := time.Now()
+    			err := addConcurentReaction(ctx, tt.reaction, 100, threadId)
+    			if err != nil {
+    				log.Println(err)
+    			}
+    
+    			c, err := db.GetConnection(ctx)
+    			require.NoError(t, err)
+    			defer c.Release()
+    
+    			thread, err := repository.GetThread(ctx, c, threadId)
+    			require.NoError(t, err)
+    
+    			assert.Equal(t, 100, thread.TotalReaction)
+    			fmt.Println("execution time: ", time.Since(start))
+    		})
+    	}
+    }
+    
+    func addConcurentReaction(ctx context.Context, cb Reaction, concurentUser int, threadId string) error {
+    
+    	newUserIds := make([]string, 0, concurentUser)
+    	for i := 0; i < concurentUser; i++ {
+    		userId, err := helper.CreateUser()
+    		if err != nil {
+    			return err
+    		}
+    		newUserIds = append(newUserIds, userId)
+    	}
+    
+    	var wg sync.WaitGroup
+    	errs := make([]error, concurentUser)
+    	for i := 0; i < concurentUser; i++ {
+    		wg.Add(1)
+    		go func(i int) {
+    			defer wg.Done()
+    			errs[i] = cb.Do(ctx, threadId, newUserIds[i])
+    		}(i)
+    	}
+    	wg.Wait()
+    
+    	for _, err := range errs {
+    		if err != nil {
+    			log.Println(err)
+    		}
+    	}
+    
+    	return nil
+    }
+    ```
+    
+    And The Returned on those test is
+    
+    ![Lost Update Result 1](/img/blog/lost-update-result-1.png)
+    ![Lost Update Result 2](/img/blog/lost-update-result-2.png)
+        
+    The Lock Row Method is has 100 row inserted and has throughput 424ms
+    
+    The Repeatable Read Isolation Method has 93 row inserted and has throughput 325ms
+    
+    The Compare And Set method perform the worse with 18 row inserted and has throughput 367ms
+    
+    So we can conclude that Lock Row Method has good consistency, but has the worse throughput than Repeatable Read method, and vice versa and Compare And Set method is good enough when you don’t have a transaction. Use your own poison
+    
+
+You can see all the benchmark in my [repo](https://github.com/Xyedo/db-concurency-problem)
+
+---
+
+I thinks That its Guys, Hope you can learn from the mistake that I've made and know about its trade-off between the isolation level and lost Update method
+
+References:
+
+- Designing Data-Intensive Applications by Martin Kleppmann
+- https://www.postgresql.org/docs/current/transaction-iso.html

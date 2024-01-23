@@ -58,5 +58,16 @@ export const blogList: { [key: string]: BlogInfo } = {
     categories: "tutorial",
     keyword: ["golang", "grpc","protobuf"],
     body : async () => await import("./grpc-as-a-service-communication.mdx")
+  },
+  "database-concurency-problem-and-benchmark": {
+    title: "Database Concurency Problem and Benchmark",
+    date: new Date(2024, 1, 24),
+    banner: "https://images.unsplash.com/photo-1519242220831-09410926fbff?q=80&w=1974&auto=format&fit=crop&ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D",
+    bannerCredit: "https://unsplash.com/@qwitka",
+    description:
+    "How to Prevent Database Concurency Problem by Knowing the Problem, the Variety of Solutions, and Benchmark it to see some trade-off",
+    categories: "tutorial",
+    keyword: ["rdbms", "postgresql", "benchmark"],
+    body : async () => await import("./database-concurency-problem-and-benchmark.mdx")
   }
 };
