@@ -59,7 +59,7 @@ export default defineConfig({
       extensions: [".mdx", ".md"],
       adapter: vercel({
         experimental: {
-          island: false
+          islands: false
         }
       }),
       islands: false,
