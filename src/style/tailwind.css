@@ -3,6 +3,9 @@
 @tailwind utilities;
 
 @layer base {
+  * {
+    @apply break-words
+  }
   html {
     scroll-behavior: smooth;
   }
