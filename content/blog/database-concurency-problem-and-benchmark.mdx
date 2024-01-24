@@ -87,7 +87,7 @@ Because this problem is common, we have variety of solutions, such as:
     
     Using Select ... For Update: it lock rows that returns from SELECT within the transaction,
     whenever another concurrent transaction want to change (SELECT FOR UPDATE, UPDATE, DELETE), 
-    it must wait until this transaction committed or aborted .
+    it must wait until this transaction committed or aborted.
     
     ```sql
     BEGIN TRANSACTION;
@@ -106,7 +106,7 @@ Because this problem is common, we have variety of solutions, such as:
     However this is must implemented carefully, its easy to forget to add FOR UPDATE (the lock)
     and we are not careful, we might be locking more row that it should be.
     
-- Automatically detecting lost updates:
+- Automatically Detecting Lost Updates
     
     By Using Repeatable Read Isolation Level In PostgreSQL,
     whenever the lost update is detected, 
@@ -357,9 +357,9 @@ On the [Lost Update](#lost-update) section, we have variety of solution, but whi
 for throughput and good for consistency? Lets benchmark those by doing 
 Add Reaction To Thread by Insert Row to Reaction Table and Increment Thread Reaction Counter.
 
-- Row Lock
+- Explicit Locking on Row Based Level
     
-    For Row Lock solution, we use default isolation level, which is read Committed Isolation Level
+    For Explicit Locking on Row Based Level Solution, we use default isolation level, which is read Committed Isolation Level
     
     ```go
     type ForUpdate struct{}
@@ -411,7 +411,7 @@ Add Reaction To Thread by Insert Row to Reaction Table and Increment Thread Reac
     }
     ```
     
-- Automatically Update using Repeatable Read Isolation Level
+- Automatically Detecting Lost Updates
     
     For Repeatable Read that automatically detect the Lost Update, 
     we can just implemented retry on the application level and forget about the lock, 
