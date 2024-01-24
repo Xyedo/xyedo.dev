@@ -39,7 +39,7 @@ Alices has $1000 that split equally between two account, when it transferred, it
 
 If Alice refresh, it indeed becoming $1000 again, if you tolerate this temporary inconsistency, you can use Read Committed Isolation Level, However we have some situation that we cannot tolerate those inconsistencies, for example when doing backup, Alice $100 money is gone, when doing analytics queries and integrity checks.
 
-The Non Repeatable Read can prevented by Read Committed Isolation Level, In PostgreSQL implementation level, it already has MVCC, so how performance it the isolation level? we will talk the [benchmark]() on another section, hang on!
+The Non Repeatable Read can prevented by Repeatable Read Isolation Level, In PostgreSQL implementation level, it already has MVCC, so how performance it the isolation level? we will talk the [benchmark]() on another section, hang on!
 
 ### Lost Update
 You have already know about Lost Update problem because we encounter it when we prevent dirty write, lost update problem can occurred when we have read-modify-write cycle, We Read something in the database, modify it, and then write it back, for example:
