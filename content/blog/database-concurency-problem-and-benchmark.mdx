@@ -1,63 +1,93 @@
 # Database Concurrency Problem
 
-We All Know about RDBMS [ACID](https://en.wikipedia.org/wiki/ACID) Properties, In this Article, lets focus about Atomicity and Isolation, To Achieve Atomicity Operation, the RDBMS Database provided with Transaction to Either Commit All Success Changes and Abort All if one fail. And If combined with Isolation, we can achieve our set to become a serious app, if you didn’t know  transaction and its Isolation Level, please check this [PostgreSQL Documentation](https://www.postgresql.org/docs/current/transaction-iso.html).
+We All Know about RDBMS [ACID](https://en.wikipedia.org/wiki/ACID) Properties.
+In this article, lets focus about atomicity and isolation, 
+to achieve atomicity operation, the RDBMS provided with transaction to either commit all success changes and 
+abort all if one fail, and If combined with isolation, 
+we can achieve our goal to become a serious app,
+ if you didn’t know Transaction and its Isolation Level, please check 
+ this [PostgreSQL Documentation](https://www.postgresql.org/docs/current/transaction-iso.html).
 
-When Transaction combined With Isolation, what isolation level should i use? if it affect performance?  how about race condition within concurrent transaction? we all have that question, 
+When transaction combined with isolation, 
+what isolation level should i use? is it affect performance?
+how about race condition within concurrent transaction? we all have that question.
 
-So Lets Start with Problem and then talk about the solution, its very common about the young (even myself) not knowing about the problem but understand the database isolation, so we gained nothing the database isolation because we don’t know what is the difference and what problem it solves, Lets Talk About The Problem one by One
+So lets start with problem and then talk about the solution, 
+its very common about the young (even myself) not knowing about the problem 
+but understand the database isolation,
+ so we gained nothing the database isolation because we don’t know 
+ what is the difference and what problem it solves, lets talk about the problem one by one
 
 ## Concurrency Problem
 
 ### Dirty Reads
 
-Dirty Read meaning when we read from the database, we also read another uncommitted changes concurrently
+Dirty read meaning when we read from the database, we also read another uncommitted changes concurrently
 
 ![Dirty Read](/img/blog/dirty-reads.png)
 
-it can be prevented by Read Committed Isolation Level and not allowed in most RDBMS, but on some vendors can be toggled by using Read Uncommited Isolation Level 
+It can be prevented by Read Committed Isolation Level and not allowed in most RDBMS,
+but on some vendors can be toggled by using Read Uncommited Isolation Level.
 
 ### Dirty Writes
 
 ![Dirty Writes](/img/blog/dirty-writes.png)
 
-When two concurrent transaction trying to update the same object in database, and earlier write is part of a transaction that has not yet committed, so he later transaction overwrite an uncommitted transaction
+When two concurrent transaction trying to update the same object in database
+and earlier write is part of a transaction that has not yet committed,
+so he later transaction overwrite an uncommitted transaction
 
-Read Committed Isolation Level prevent dirty writes by locking the row when write (UPDATE, DELETE) to ensure no dirty write, so the later transaction wait until the earlier write is committed or aborted
+Read Committed Isolation Level prevent dirty writes 
+by locking the row when write (UPDATE, DELETE) to ensure no dirty write, 
+so the later transaction wait until the earlier write is committed or aborted.
 
-However, Preventing the Dirty Writes doesn't prevent Lost Update, consider this case
+However, preventing the dirty writes doesn't prevent another problem, consider this case:
 
 ![Lost Update](/img/blog/lost-update.png)
 
-The Expected Behavior is the counter should be 3, incremented one by User 1 and Incremented one by User 2, but it resulted 2, It encounter another Problem, [Lost Update](#lost-update)
+The expected behavior is the counter should be 3, incremented one by User 1 and incremented one by User 2,
+but it resulted 2. It encounter another Problem, The [Lost Update](#lost-update)
 
 
 ### Non Repeatable Read
 
 ![Non Repeatable Read](/img/blog/non-repeatable-read.png)
 
-Alices has $1000 that split equally between two account, when it transferred, it become 600 on account 1, and 400 on account 2, and in between the transferred, Alice Read its balance, in account A is 500 and in Account B is 400 and has total $900 even though she has $1000,
+Alices has $1000 that split equally between two account, when it transferred, it become 600 on Account 1,
+and 400 on account 2. In between the transferred, Alice read its balance,
+in account A is 500,in Account B is 400 and has total $900 even though she has $1000.
 
-If Alice refresh, it indeed becoming $1000 again, if you tolerate this temporary inconsistency, you can use Read Committed Isolation Level, However we have some situation that we cannot tolerate those inconsistencies, for example when doing backup, Alice $100 money is gone, when doing analytics queries and integrity checks.
+If Alice refreshes, it indeed becoming $1000 again. If you tolerate this temporary inconsistency,
+you can use Read Committed Isolation Level,
+however we have some situation that we cannot tolerate those inconsistencies, 
+for example when doing backup, Alice $100 money is gone or when doing analytics queries and integrity checks.
 
-The Non Repeatable Read can prevented by Repeatable Read Isolation Level, In PostgreSQL implementation level, it already has MVCC, so how performance it the isolation level? we will talk the [benchmark]() on another section, hang on!
+The Non Repeatable Read can prevented by Repeatable Read Isolation Level. 
+In PostgreSQL implementation level, it already has MVCC. 
+So how performance it the isolation level? we will talk the [benchmark]() on another section, hang on!
 
 ### Lost Update
-You have already know about Lost Update problem because we encounter it when we prevent dirty write, lost update problem can occurred when we have read-modify-write cycle, We Read something in the database, modify it, and then write it back, for example:
+You have already know about Lost Update problem because we encounter it when we prevent dirty write, 
+lost update problem can occurred when we have read-modify-write cycle, 
+we Read something in the database, modify it, and then write it back, for example:
 
-- Increment A Counter: read a database, increment it, and write it again to the database
-- Two Users Editing a collaborating document (wiki, forum, notes): when two users editing the page at the same time, it overwriting whatever is currently in the database
+- Increment a Counter: read a database, increment it, and write it again to the database.
+- Two Users Editing a Collaborating Document (wiki, forum, notes): 
+when two users editing the page at the same time, it overwriting whatever is currently in the database.
 
-because this problem is common, we have variety of solutions, such as
+Because this problem is common, we have variety of solutions, such as:
 
 - Atomic Operation
     
     ```sql
-    UPDATE view_counter SET value = value +1 where document_id = ?;
+    UPDATE view_counter SET value = value +1 where document_id = $1;
     ```
     
 - Explicit Locking on Row Based Level:
     
-    For Update Lock rows that returns from SELECT within the transaction, whenever another concurrent transaction want to change (SELECT FOR UPDATE, UPDATE, DELETE), it must wait until this transaction committed or aborted 
+    Using Select ... For Update: it lock rows that returns from SELECT within the transaction,
+    whenever another concurrent transaction want to change (SELECT FOR UPDATE, UPDATE, DELETE), 
+    it must wait until this transaction committed or aborted .
     
     ```sql
     BEGIN TRANSACTION;
@@ -73,25 +103,55 @@ because this problem is common, we have variety of solutions, such as
     COMMIT;
     ```
     
-    However this is must implemented carefully, its easy to forget to add lock and we are not careful, we might be locking more row that it should be
+    However this is must implemented carefully, its easy to forget to add FOR UPDATE (the lock)
+    and we are not careful, we might be locking more row that it should be.
     
 - Automatically detecting lost updates:
     
-    By Using Repeatable Read In PostgreSQL, whenever the lost update is detected, the transaction will return error with Code 40001, we must retry it on the application level
+    By Using Repeatable Read Isolation Level In PostgreSQL,
+    whenever the lost update is detected, 
+    the transaction will return error with Code 40001, we must retry it on the application level.
 
-We Will [Benchmark](#lost-update-benchmark) Using Lock, Repeatable Read, and Compare And Set method too see in which throughput is good and its trade off, but for now, we will go to the next concurrency problem
+- Compare and Set
+    
+    It usually when we have no transaction feature, like in the distributed system,
+    we can implement it by any attributes, but it usually using version:
+    
+    ```sql
+    SELECT content, version
+    FROM forum
+    where id = $1
+    
+    // Do some validation, and Modify
+    
+    UPDATE forum SET 
+    	content = $1,
+    	version = version +1
+    WHERE id = $2 AND
+    version = $3 --This the most important key for Compare And Set
+    ```
+    
+    We get the attribute and version, modify it, update the attribute, 
+    and then write it back it condition version that we are get earlier, 
+    whenever the affected rows is 0, we must retry the cycle (read-modify-write) on the application level.
+
+We will [benchmark](#lost-update-benchmark) using Explicit Lock, Repeatable Read, and Compare And Set method
+to see in which throughput is good and its trade off but for now, we will go to the next concurrency problem.
 
 ### Write Skew
 
-This problem is generalized whenever we read the database, and based on that read, we cant abort if its not met the validation or continue the transaction to insert or update, for example, we have doctor, the requirement is at least we have 1 doctor in the ER, if two doctor click on_leave at the same time, this can happened:
+This problem is generalized whenever we read the database and based on that read,
+we can abort if its not met the validation or continue the transaction to insert or update,
+for example, we have hospital system that has a requirement at least we have 1 doctor in the ER,
+if two doctor click on_leave at the same time, this can happened:
 
 ![Write Skwe](/img/blog/write-skew.png)
 
-But That Problem Is Easily Solved By Select … FOR UPDATE
+But that Problem is easily solved by SELECT … FOR UPDATE
 
 Another Example:
 
-- Hotel system who cannot double-booking
+- Hotel System who Cannot Double-Booking
     
     ```sql
     BEGIN TRANSACTION;
@@ -109,30 +169,34 @@ Another Example:
     COMMIT;
     ```
     
-    This Cannot Solved By For Update because the returning is either zero or many, whenever it returned zero, it locks on nothing, so double booking can happened
+    This cannot solved by SELECT ... For Update because the returning is either zero or many,
+    whenever it returned zero, it locks on nothing, so double booking can happened.
     
 - Claiming Username / Phone_Number / Email on User:
     
-    In the Application Code, we usually do this:
+    In the application code, we usually do this:
     
-    1. Read if Username is not found on the database
-    2. If username found, return 400 and abort the transaction
-    3. If username not found, insert the username to the database, return 200
+    1. Read if Username is not found on the database.
+    2. If username found, return 400 and abort the transaction.
+    3. If username not found, insert the username to the database, return 200.
     
-    This Can Easily Solved By Unique Constraint
+    This can easily solved by unique constraint
     
 
-On All of those example, the pattern is read, check, and do something based the first read. 
+On all of those example, the pattern is read, check, and do something based the first read. 
 
 All of those example can easily avoided using Serializable Isolation level, but how performance is serializable? 
 
-in PostgreSQL serializable implementation is using SSI (Serializable Snapshot Isolation) which mean it based on Repeatable Read Isolation Level and added detecting the write skew and phantom read on commit, whenever it has a phantom read or write skew, it aborted.  So, it added overhead to keep all concurent transaction and the check on commit.
+in PostgreSQL, Serializable Isolation Level implementation by using SSI (Serializable Snapshot Isolation)
+which mean it based on Repeatable Read Isolation Level and added detecting the write skew and phantom read on commit,
+whenever it has a phantom read or write skew, it aborted.
+So, it added overhead to keep all concurent transaction and the check on commit.
 
 ## Isolation Level Benchmark in PostgreSQL
 
-Lets benchmark All these Isolation Level to know what isolation level we should use
+Lets benchmark all these Isolation Level to know what isolation level we should use.
 
-as an example, we want to implement forum, that user can write, comment, add reaction to it
+As an example, we want to implement forum, that user can write, comment, add reaction to it
 
 ```sql
 CREATE EXTENSION IF NOT EXISTS citext;
@@ -189,11 +253,12 @@ CREATE TABLE IF NOT EXISTS REACTION (
 );
 ```
 
-In this Benchmark we use Golang, PostgreSQL, and pgx as a postgresql driver. We will benchmark the perfomance based on single object and multiple object
+In this benchmark we use Golang, PostgreSQL, and PGX as a postgresql driver.
+We will benchmark the perfomance based on single object and multiple object.
 
 ### Single Object
 
-We Using Read Modify Write to Account table with various transaction level
+We using read-modify-write to ACCOUNT table with various transaction isolation level
 
 ```go
 func ReadModifyWriteUser(ctx context.Context, txOpt pgx.TxOptions, userId string) error {
@@ -246,7 +311,7 @@ func ReadModifyWriteComment(ctx context.Context, txOpt pgx.TxOptions, userId, th
 }
 ```
 
-The db.Atomic is wrapped Transaction that when returned error, it will rollback, and if returned nil, it will commit
+The db.Atomic is wrapped transaction that when returned error, it will rollback and if returned nil, it will commit
 
 ```go
 package db
@@ -280,17 +345,21 @@ func Atomic(ctx context.Context, txOpt pgx.TxOptions, cb func(tx Connection) err
 
 ![Benchmark Isolation Level](/img/blog/benchmark-isolation-level.png)
 
-We can easily see that Read Committed  and Repeatable Read Isolation level can be use interchangeably because the performance is quite the same, so when not sure which one to use, use Repeatable Read Isolation Level
+We can easily see that Read Committed and Repeatable Read Isolation level can be use interchangeably
+because the performance is quite the same, so when not sure which one to use, use Repeatable Read Isolation Level.
 
-and On Serializable Isolation level, the performance drop a little, so whenever we are sure the problem that we are facing is can be solved by lower isolation level, use the lower isolation level
+On Serializable Isolation level, the performance drop a little, so whenever we are sure the problem that we are facing
+is can be solved by lower isolation level, use the lower isolation level.
 
 ## Lost Update Benchmark
 
-On the Lost update section, we have variety of solution, but which one is good for throughput and good for consistency? Lest benchmark those by doing Add Reaction To Thread by Insert Row to Reaction Table and Increment Thread Reaction Counter
+On the [Lost Update](#lost-update) section, we have variety of solution, but which one is good 
+for throughput and good for consistency? Lets benchmark those by doing 
+Add Reaction To Thread by Insert Row to Reaction Table and Increment Thread Reaction Counter.
 
 - Row Lock
     
-    For Row Lock solution, we use default isolation level, which is read Committed
+    For Row Lock solution, we use default isolation level, which is read Committed Isolation Level
     
     ```go
     type ForUpdate struct{}
@@ -342,9 +411,12 @@ On the Lost update section, we have variety of solution, but which one is good f
     }
     ```
     
-- Repeatable Read
+- Automatically Update using Repeatable Read Isolation Level
     
-    For Repeatable Read that automatically detect the Lost Update, we can just implemented retry on the application level and forget about the lock, whenever errors code is 40001, we retry it until retry counter reach maximum and return error max retry, so implementation retriable Transaction is becoming like this
+    For Repeatable Read that automatically detect the Lost Update, 
+    we can just implemented retry on the application level and forget about the lock, 
+    whenever errors code is 40001, we retry it until retry counter reach maximum and return error max retry,
+    so implementation retriable Transaction is becoming like this
     
     ```go
     const maxRetry = 5
@@ -399,7 +471,7 @@ On the Lost update section, we have variety of solution, but which one is good f
     }
     ```
     
-    And The Implementation is Becoming more simple
+    And the implementation is becoming more simple
     
     ```go
     type RepeatableRead struct{}
@@ -454,9 +526,10 @@ On the Lost update section, we have variety of solution, but which one is good f
     }
     ```
     
-- Compare And Set
+- Compare and Set
     
-    In the compare And Set, we don’t use transaction at all to following with premise distributed system that transaction is not available, so we retry with manual abort
+    In the Compare and Set, we don’t use transaction at all to following with premise distributed system 
+    that transaction is not available, so we retry with manual abort
     
     ```go
     type CompareAndSet struct{}
@@ -558,7 +631,7 @@ On the Lost update section, we have variety of solution, but which one is good f
     }
     ```
     
-    And We Do Test to check all of those method
+    After that, we do testing to check all of those method
     
     ```go
     type Reaction interface {
@@ -641,25 +714,29 @@ On the Lost update section, we have variety of solution, but which one is good f
     }
     ```
     
-    And The Returned on those test is
+    The returned on those test is:
     
     ![Lost Update Result 1](/img/blog/lost-update-result-1.png)
     ![Lost Update Result 2](/img/blog/lost-update-result-2.png)
         
-    The Lock Row Method is has 100 row inserted and has throughput 424ms
+    The Lock Row Using SELECT ... FOR UPDATE Method is has 100 row inserted and has throughput 424ms.
     
-    The Repeatable Read Isolation Method has 93 row inserted and has throughput 325ms
+    The Automatically Lost Update Detected Method has 93 row inserted and has throughput 325ms.
     
-    The Compare And Set method perform the worse with 18 row inserted and has throughput 367ms
+    The Compare And Set method perform the worse with 18 row inserted and has throughput 367ms.
     
-    So we can conclude that Lock Row Method has good consistency, but has the worse throughput than Repeatable Read method, and vice versa and Compare And Set method is good enough when you don’t have a transaction. Use your own poison
+    So we can conclude that Lock Row Method has good consistency,
+    but has the worse throughput than Automatically Lost Update Detected method and vice versa. 
+    Compare And Set method is good enough when you don’t have a transaction. 
+    After those benchmark, we know about the trade-off, so use your own poison.
     
 
 You can see all the benchmark in my [repo](https://github.com/Xyedo/db-concurency-problem)
 
 ---
 
-I thinks That its Guys, Hope you can learn from the mistake that I've made and know about its trade-off between the isolation level and lost Update method
+I thinks that its guys, i hope you can learn from the mistake that I've made 
+and know about its trade-off between the Isolation level and Lost Update method
 
 References:
 
