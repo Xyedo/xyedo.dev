@@ -22,7 +22,8 @@ but understand the database isolation,
 
 ### Dirty Reads
 
-Dirty read meaning when we read from the database, we also read another uncommitted changes concurrently
+Dirty read meaning when we read from the database, 
+we also read another uncommitted changes concurrently
 
 ![Dirty Read](/img/blog/dirty-reads.png)
 
@@ -35,7 +36,7 @@ but on some vendors can be toggled by using Read Uncommited Isolation Level.
 
 When two concurrent transaction trying to update the same object in database
 and earlier write is part of a transaction that has not yet committed,
-so he later transaction overwrite an uncommitted transaction
+so the later transaction overwrite an uncommitted transaction
 
 Read Committed Isolation Level prevent dirty writes 
 by locking the row when write (UPDATE, DELETE) to ensure no dirty write, 
@@ -46,34 +47,41 @@ However, preventing the dirty writes doesn't prevent another problem, consider t
 ![Lost Update](/img/blog/lost-update.png)
 
 The expected behavior is the counter should be 3, incremented one by User 1 and incremented one by User 2,
-but it resulted 2. It encounter another Problem, The [Lost Update](#lost-update)
+but it resulted 2. It encounter another Problem, The [Lost Update](#lost-update).
 
 
 ### Non Repeatable Read
 
 ![Non Repeatable Read](/img/blog/non-repeatable-read.png)
 
-Alices has $1000 that split equally between two account, when it transferred, it become 600 on Account 1,
-and 400 on account 2. In between the transferred, Alice read its balance,
-in account A is 500,in Account B is 400 and has total $900 even though she has $1000.
+Alices has $1000 that split equally between two account, 
+when it transferred, it become 600 on Account 1,
+and 400 on Account 2. In between transfer, Alice read its balance,
+in account A is 500, in Account B is 400 and has total $900 even though she has $1000.
 
-If Alice refreshes, it indeed becoming $1000 again. If you tolerate this temporary inconsistency,
+If Alice refreshes, it indeed becoming $1000 again. 
+If you tolerate this temporary inconsistency,
 you can use Read Committed Isolation Level,
 however we have some situation that we cannot tolerate those inconsistencies, 
-for example when doing backup, Alice $100 money is gone or when doing analytics queries and integrity checks.
+for example when doing backup Alice $100 money is gone
+or when doing analytics queries and integrity checks.
 
 The Non Repeatable Read can prevented by Repeatable Read Isolation Level. 
 In PostgreSQL implementation level, it already has MVCC. 
-So how performance it the isolation level? we will talk the [benchmark](#lost-update-benchmark) on another section, hang on!
+So how performance it the isolation level? 
+we will talk the [benchmark](#lost-update-benchmark) on another section, hang on!
 
 ### Lost Update
-You have already know about Lost Update problem because we encounter it when we prevent dirty write, 
+You have already know about Lost Update problem because we 
+encounter it when we prevent dirty write, 
 lost update problem can occurred when we have read-modify-write cycle, 
 we Read something in the database, modify it, and then write it back, for example:
 
-- Increment a Counter: read a database, increment it, and write it again to the database.
+- Increment a Counter: read a database, increment it, 
+and write it again to the database.
 - Two Users Editing a Collaborating Document (wiki, forum, notes): 
-when two users editing the page at the same time, it overwriting whatever is currently in the database.
+when two users editing the page at the same time, 
+it overwriting whatever is currently in the database.
 
 Because this problem is common, we have variety of solutions, such as:
 
@@ -104,13 +112,14 @@ Because this problem is common, we have variety of solutions, such as:
     ```
     
     However this is must implemented carefully, its easy to forget to add FOR UPDATE (the lock)
-    and we are not careful, we might be locking more row that it should be.
+    and if we are not careful, we might be locking more row that it should be.
     
 - Automatically Detecting Lost Updates
     
     By Using Repeatable Read Isolation Level In PostgreSQL,
     whenever the lost update is detected, 
-    the transaction will return error with Code 40001, we must retry it on the application level.
+    the transaction will return error with Code 40001, 
+    we must retry it on the application level.
 
 - Compare and Set
     
@@ -122,7 +131,7 @@ Because this problem is common, we have variety of solutions, such as:
     FROM forum
     where id = $1
     
-    // Do some validation, and Modify
+    -- Do some validation, and Modify
     
     UPDATE forum SET 
     	content = $1,
@@ -133,19 +142,23 @@ Because this problem is common, we have variety of solutions, such as:
     
     We get the attribute and version, modify it, update the attribute, 
     and then write it back it condition version that we are get earlier, 
-    whenever the affected rows is 0, we must retry the cycle (read-modify-write) on the application level.
+    whenever the affected rows that returned from UPDATE is 0,
+    we must retry the cycle (read-modify-write) on the application level.
 
-We will [benchmark](#lost-update-benchmark) using Explicit Lock, Repeatable Read, and Compare And Set method
-to see in which throughput is good and its trade off but for now, we will go to the next concurrency problem.
+We will [benchmark](#lost-update-benchmark) using Explicit Lock, 
+Repeatable Read, and Compare And Set method to see in which 
+throughput is good and its trade off but for now, 
+we will go to the next concurrency problem.
 
 ### Write Skew
 
 This problem is generalized whenever we read the database and based on that read,
-we can abort if its not met the validation or continue the transaction to insert or update,
-for example, we have hospital system that has a requirement at least we have 1 doctor in the ER,
-if two doctor click on_leave at the same time, this can happened:
+we can abort if its not met the validation or continue the transaction to insert 
+or update, for example, we have hospital system that has a requirement 
+at least we have 1 doctor in the ER, if two doctor click on_leave at the same time,
+this can happened:
 
-![Write Skwe](/img/blog/write-skew.png)
+![Write Skew](/img/blog/write-skew.png)
 
 But that Problem is easily solved by SELECT … FOR UPDATE
 
@@ -169,8 +182,9 @@ Another Example:
     COMMIT;
     ```
     
-    This cannot solved by SELECT ... For Update because the returning is either zero or many,
-    whenever it returned zero, it locks on nothing, so double booking can happened.
+    This cannot solved by SELECT ... For Update because the returning is either zero 
+    or many, whenever it returned zero, 
+    it locks on nothing, so double booking can happened.
     
 - Claiming Username / Phone_Number / Email on User:
     
@@ -183,20 +197,24 @@ Another Example:
     This can easily solved by unique constraint
     
 
-On all of those example, the pattern is read, check, and do something based the first read. 
+On all of those example, the pattern is read, check, 
+and do something based the first read. 
 
-All of those example can easily avoided using Serializable Isolation level, but how performance is serializable? 
+All of those example can easily avoided using Serializable Isolation level, 
+but how performance is serializable? 
 
-in PostgreSQL, Serializable Isolation Level implementation by using SSI (Serializable Snapshot Isolation)
-which mean it based on Repeatable Read Isolation Level and added detecting the write skew and phantom read on commit,
-whenever it has a phantom read or write skew, it aborted.
+in PostgreSQL, Serializable Isolation Level implemented by using SSI 
+(Serializable Snapshot Isolation) which mean it based on 
+Repeatable Read Isolation Level and added detecting the write skew 
+and phantom read on commit, whenever it has a phantom read or write skew, it aborted.
 So, it added overhead to keep all concurent transaction and the check on commit.
 
 ## Isolation Level Benchmark in PostgreSQL
 
 Lets benchmark all these Isolation Level to know what isolation level we should use.
 
-As an example, we want to implement forum, that user can write, comment, add reaction to it
+As an example, we want to implement forum,
+that user can write, comment, add reaction to it
 
 ```sql
 CREATE EXTENSION IF NOT EXISTS citext;
@@ -277,7 +295,8 @@ func ReadModifyWriteUser(ctx context.Context, txOpt pgx.TxOptions, userId string
 
 ### Multiple Object
 
-On multiple object, we added a comment to a thread, and increment the counter to the thread
+On multiple object, we added a comment to a thread, 
+and increment the counter to the thread
 
 ```go
 func ReadModifyWriteComment(ctx context.Context, txOpt pgx.TxOptions, userId, threadId string) error {
@@ -311,7 +330,8 @@ func ReadModifyWriteComment(ctx context.Context, txOpt pgx.TxOptions, userId, th
 }
 ```
 
-The db.Atomic is wrapped transaction that when returned error, it will rollback and if returned nil, it will commit
+The db.Atomic is wrapped transaction that when returned error, 
+it will rollback and if returned nil, it will commit
 
 ```go
 package db
@@ -345,21 +365,25 @@ func Atomic(ctx context.Context, txOpt pgx.TxOptions, cb func(tx Connection) err
 
 ![Benchmark Isolation Level](/img/blog/benchmark-isolation-level.png)
 
-We can easily see that Read Committed and Repeatable Read Isolation level can be use interchangeably
-because the performance is quite the same, so when not sure which one to use, use Repeatable Read Isolation Level.
+We can easily see that Read Committed and Repeatable Read Isolation 
+level can be use interchangeably because the performance is quite the same,
+so when not sure which one to use, use Repeatable Read Isolation Level.
 
-On Serializable Isolation level, the performance drop a little, so whenever we are sure the problem that we are facing
+On Serializable Isolation level, the performance drop a little, 
+so whenever we are sure the problem that we are facing
 is can be solved by lower isolation level, use the lower isolation level.
 
 ## Lost Update Benchmark
 
-On the [Lost Update](#lost-update) section, we have variety of solution, but which one is good 
-for throughput and good for consistency? Lets benchmark those by doing 
-Add Reaction To Thread by Insert Row to Reaction Table and Increment Thread Reaction Counter.
+On the [Lost Update](#lost-update) section, we have variety of solution, 
+but which one is good for throughput and good for consistency? 
+Lets benchmark those by doing Add Reaction To Thread by Insert Row 
+to Reaction Table and Increment Thread Reaction Counter.
 
 - Explicit Locking on Row Based Level
     
-    For Explicit Locking on Row Based Level Solution, we use default isolation level, which is read Committed Isolation Level
+    For Explicit Locking on Row Based Level Solution, 
+    we use default isolation level, which is read Committed Isolation Level
     
     ```go
     type ForUpdate struct{}
@@ -415,8 +439,9 @@ Add Reaction To Thread by Insert Row to Reaction Table and Increment Thread Reac
     
     For Repeatable Read that automatically detect the Lost Update, 
     we can just implemented retry on the application level and forget about the lock, 
-    whenever errors code is 40001, we retry it until retry counter reach maximum and return error max retry,
-    so implementation retriable Transaction is becoming like this
+    whenever errors code is 40001, we retry it until retry counter 
+    reach maximum and return error max retry, so implementation retriable 
+    Transaction is becoming like this
     
     ```go
     const maxRetry = 5
@@ -528,7 +553,8 @@ Add Reaction To Thread by Insert Row to Reaction Table and Increment Thread Reac
     
 - Compare and Set
     
-    In the Compare and Set, we don’t use transaction at all to following with premise distributed system 
+    In the Compare and Set, we don’t use transaction at all 
+    to following with premise distributed system 
     that transaction is not available, so we retry with manual abort
     
     ```go
