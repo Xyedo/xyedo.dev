@@ -16,7 +16,7 @@
     "postcss": "^8.4.31",
     "rehype-autolink-headings": "^6.1.1",
     "rehype-highlight": "^6.0.0",
-    "rehype-slug": "^5.1.0",
+    "rehype-slug": "^6.0.0",
     "remark-gfm": "^3.0.1",
     "remark-mdx-toc": "^0.3.1",
     "remark-reading-time": "^2.0.1",
