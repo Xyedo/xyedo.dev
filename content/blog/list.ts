@@ -69,5 +69,16 @@ export const blogList: { [key: string]: BlogInfo } = {
     categories: "tutorial",
     keyword: ["rdbms", "postgresql", "benchmark"],
     body : async () => await import("./database-concurency-problem-and-benchmark.mdx")
+  },
+  "on-the-way-to-50rps-guide": {
+    title: "On the Way to 50 RPS: A Practical Guide to Scaling Your Backend",
+    date: new Date(2025, 5, 4),
+    banner: "https://images.unsplash.com/photo-1728986390942-31395b0d42e1?q=80&w=1470&auto=format&fit=crop&ixlib=rb-4.1.0&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D",
+    bannerCredit: "https://unsplash.com/@bylukemiller",
+    description:
+      "A concise, practical guide to scaling your backend to 50 RPS. Learn how to optimize your database, avoid premature complexity, and apply proven techniques for performance and reliability—without overengineering your architecture.",
+    categories: "tutorial",
+    keyword: ["performance", "optimization", "databases"],
+    body: async () => await import("./on-the-way-to-50rps-guide.mdx"),
   }
 };
