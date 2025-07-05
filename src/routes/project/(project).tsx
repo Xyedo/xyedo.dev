@@ -3,21 +3,38 @@ import SEO from "~/components/SEO";
 import HeroSections from "../../components/section/hero-sections";
 import ButtonWrapper from "~/components/Button";
 import { projectList } from "~/../content/project/list";
-import { useRouteData } from "solid-start";
+import { type RouteDefinition } from "@solidjs/router";
 import ProjectCard from "~/components/ProjectCard";
 type Props = {};
-export function routeData() {
-  return {
-    get articles() {
-      return Object.entries(projectList).sort(
-        (a, b) =>
-          a[1].date.getUTCMilliseconds() - b[1].date.getUTCMilliseconds()
-      ).reverse();
+const routeData =  {
+    get projects() {
+      return Object.entries(projectList)
+        .sort(
+          (a, b) =>
+            a[1].date.getUTCMilliseconds() - b[1].date.getUTCMilliseconds()
+        )
+        .reverse()
+        .slice(0, 5).
+        map(([id, project]) => {
+          return {
+            id,
+            banner: project.banner,
+            categories: project.categories,
+            date: project.date,
+            description: project.description,
+            stacks: project.stacks,
+            title: project.title,
+          };
+        });
     },
-  };
-}
+  }
+
+export const route = {
+  preload: () => routeData,
+} satisfies RouteDefinition;
+
 const Project: Component<Props> = () => {
-  const data = useRouteData<typeof routeData>();
+  const data = routeData
   return (
     <main>
       <SEO title="Project / Xyedo" />
@@ -40,16 +57,16 @@ const Project: Component<Props> = () => {
       />
       <section class="mx-[10vw]">
         <div class="py-24 px-0" id="curated">
-          <For each={data.articles}>
-            {([id, article]) => (
+          <For each={data.projects}>
+            {(project) => (
               <ProjectCard
-                categories={article.categories}
-                stacks={article.stacks}
-                id={id}
-                banner={article.banner}
-                date={article.date}
-                title={article.title}
-                description={article.description}
+                categories={project.categories}
+                stacks={project.stacks}
+                id={project.id}
+                banner={project.banner}
+                date={project.date}
+                title={project.title}
+                description={project.description}
               />
             )}
           </For>

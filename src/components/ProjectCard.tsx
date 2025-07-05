@@ -1,7 +1,7 @@
 import { ProjectInfo } from "content/project/list";
 import { Component, For } from "solid-js";
 import { FaSolidArrowRightLong } from "solid-icons/fa";
-import { A } from "solid-start";
+import { A } from "@solidjs/router";
 
 interface Props extends Omit<ProjectInfo, "body"> {
   id: string;
@@ -34,7 +34,7 @@ const ProjectCard: Component<Props> = (props) => {
               {props.date.toLocaleDateString()}
             </span>
           </div>
-          <div class="box-border ml-0 my-3 w-[70px] h-1 rounded-md bg-gradient-to-r from-[#D23669] to-[#FFA7C4]  dark:from-[#FFA7C4] dark:to-[#D23669]" />
+          <div class="box-border ml-0 my-3 w-[70px] h-1 rounded-md bg-linear-to-r from-[#D23669] to-[#FFA7C4] dark:via-none  dark:from-[#FFA7C4] dark:to-[#D23669]" />
           <p class="max-w-md break-words">{props.description}</p>
           <div class="space-x-2 text-sm mt-6">
             <span>Stacks: </span>

@@ -1,26 +1,37 @@
 import { Component, For } from "solid-js";
-import { useRouteData } from "solid-start";
 import ButtonWrapper from "~/components/Button";
 import HeroSections from "~/components/section/hero-sections";
 import { blogList } from "~/../content/blog/list";
 import SEO from "~/components/SEO";
 import BlogCard from "~/components/BlogCard";
+import {  RouteDefinition } from "@solidjs/router";
 type Props = {};
 
-export function routeData() {
-  return {
-    get articles() {
-      return Object.entries(blogList).sort(
-        (a, b) =>
-          a[1].date.getUTCMilliseconds() - b[1].date.getUTCMilliseconds()
-      ).reverse();
+const routeData =  ({
+    get blogs() {
+      return Object.entries(blogList)
+        .sort(
+          (a, b) =>
+            b[1].date.getUTCMilliseconds() - a[1].date.getUTCMilliseconds()
+        )
+        .reverse()
+        .map(([id, blog]) => ({
+          banner: blog.banner,
+          categories: blog.categories,
+          date: blog.date,
+          description: blog.description,
+          title: blog.title,
+          id: id,
+        }));
     },
-  };
-}
+  })
+
+export const route = {
+  preload: () => routeData,
+} satisfies RouteDefinition;
 
 const Blog: Component<Props> = () => {
-  const data = useRouteData<typeof routeData>();
-
+  const data = routeData;
   return (
     <main>
       <SEO title="Blog / Xyedo" />
@@ -46,15 +57,15 @@ const Blog: Component<Props> = () => {
           class="flex flex-col sm:flex-row sm:flex-wrap sm:items-center sm:justify-center sm:space-x-4 "
           id="curated-blogs"
         >
-          <For each={data.articles}>
-            {([id, article]) => (
+          <For each={data.blogs}>
+            {(blog) => (
               <BlogCard
-                categories={article.categories}
-                id={id}
-                banner={article.banner}
-                date={article.date}
-                title={article.title}
-                description={article.description}
+                categories={blog.categories}
+                id={blog.id}
+                banner={blog.banner}
+                date={blog.date}
+                title={blog.title}
+                description={blog.description}
               />
             )}
           </For>

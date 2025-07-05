@@ -1,4 +1,4 @@
-import { A, useIsRouting, useMatch } from "solid-start";
+import { A, useIsRouting, useMatch } from "@solidjs/router";
 import {
   Component,
   createSignal,
@@ -10,7 +10,7 @@ import {
 import { BiRegularMoon, BiRegularSun } from "solid-icons/bi";
 import { FaSolidCircle } from "solid-icons/fa";
 import { TiTimes } from "solid-icons/ti";
-import { Motion } from "@motionone/solid";
+import { Motion } from "solid-motionone";
 import { Portal } from "solid-js/web";
 import PageLoaderBar from "~/components/loader/page-loading-bar";
 import { useThemeCtx } from "~/context/ThemeProvider";
@@ -36,7 +36,7 @@ const NavLink: Component<Parameters<typeof A>["0"] & { name: string }> = (
       <A
         href={local.href}
         {...linkProps}
-        class="underlined font-semibold focus:outline-none block whitespace-nowrap text-lg hover:text-pink focus:text-pink"
+        class="underlined font-semibold focus:outline-hidden block whitespace-nowrap text-lg hover:text-pink focus:text-pink"
         classList={{
           "active text-pink": Boolean(match()),
           "text-primary": Boolean(!match()),
@@ -62,7 +62,7 @@ const DarkModeToggle: Component<{
         );
       }}
       class={
-        "border-secondary hover:border-pink focus:border-pink focus:outline-none inline-flex h-14 items-center justify-center overflow-hidden rounded-full border-2 p-1 transition"
+        "border-secondary hover:border-pink focus:border-pink focus:outline-hidden inline-flex h-14 items-center justify-center overflow-hidden rounded-full border-2 p-1 transition"
       }
       classList={{
         "w-14": merged.variant === "icon",
@@ -120,7 +120,7 @@ const MobileMenu: Component = () => {
   return (
     <>
       <button
-        class="focus:border-pink hover:border-pink border-secondary text-primary focus:outline-none inline-flex h-14 w-14 items-center justify-center rounded-full border-2 p-1 transition"
+        class="focus:border-pink hover:border-pink border-secondary text-primary focus:outline-hidden inline-flex h-14 w-14 items-center justify-center rounded-full border-2 p-1 transition"
         onClick={() => setExpanded((v) => !v)}
       >
         <svg
@@ -188,7 +188,7 @@ const MobileMenuList: Component<MobileMenuListProps> = (props) => {
         >
           <div
             class={`absolute top-7 right-4 bg-transparent text-4xl cursor-pointer 
-              outline-none`}
+              outline-hidden`}
             onClick={() => props.setExpanded(false)}
           >
             <TiTimes
@@ -227,7 +227,7 @@ const Subscribe: Component = () => {
       href="/subscribe"
       aria-label="Subscribe My Blog"
       class={
-        "focus:outline-none ml-4 inline-flex h-14 w-14 items-center justify-center rounded-full"
+        "focus:outline-hidden ml-4 inline-flex h-14 w-14 items-center justify-center rounded-full"
       }
     >
       <FaSolidCircle class={"text-pink transition"} size={50} />
@@ -244,7 +244,7 @@ const NavBar: Component<Props> = () => {
           <div>
             <A
               href="/"
-              class="text-primary underlined focus:outline-none block whitespace-nowrap text-2xl font-medium transition"
+              class="text-primary underlined focus:outline-hidden block whitespace-nowrap text-2xl font-medium transition"
             >
               <h1 class="font-semibold text-primary">Xyedo</h1>
             </A>

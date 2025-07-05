@@ -1,4 +1,4 @@
-import { Motion, MotionProxyComponent } from "@motionone/solid";
+import { Motion, MotionProxyComponent } from "solid-motionone";
 import {
   Component,
   JSXElement,
@@ -6,6 +6,9 @@ import {
   Show,
   JSX,
   children,
+  createSignal,
+  createEffect,
+  ResolvedChildren,
 } from "solid-js";
 import ArrowBtn from "../svg/arrow-btn";
 
@@ -43,20 +46,21 @@ const HeroSections: Component<Props> = (props) => {
     props
   );
 
-  const title =
-    typeof localProps.title !== "string"
-      ? children(() => localProps.title)
-      : null;
+  const [title, setTitle] = createSignal<ResolvedChildren | string>();
+  const [subtitle, setSubtitle] = createSignal<ResolvedChildren | string>();
   const action = children(() => localProps.action);
-  const subtitle =
-    localProps.subtitle && typeof localProps.subtitle !== "string"
-      ? children(() => localProps.subtitle)
-      : null;
+  createEffect(() => {
+    if (typeof localProps.title !== "string") setTitle(children(() => localProps.title));
+    else setTitle(localProps.title);
+
+    if (localProps.subtitle && typeof localProps.subtitle !== "string") setSubtitle(children(() => localProps.subtitle));
+    else setSubtitle(localProps.subtitle);
+  });
   return (
     <section class="relative mx-[10vw] text-primary">
       <div
         class="relative grid grid-cols-4 gap-x-4 md:grid-cols-8 lg:grid-cols-12 lg:gap-x-6 lg:mx-auto max-w-7xl
-        lg:mb-4 h-auto pt-24 lg:min-h-[40rem] lg:pb-12"
+        lg:mb-4 h-auto pt-24 lg:min-h-160 lg:pb-12"
       >
         <div
           class="col-span-full mb-12 lg:mb-0"
@@ -91,10 +95,10 @@ const HeroSections: Component<Props> = (props) => {
               inView={{ opacity: 1, y: 0, transition: { duration: 0.4 } }}
             >
               <Show
-                when={typeof localProps.title !== "string"}
+                when={typeof title() !== "string"}
                 fallback={
                   <h1 class="bg-red-grad dark:bg-pink-grad transition-colors duration-200 ease-linear font-black text-pink text-xl md:text-3xl lg:text-5xl pb-2">
-                    {localProps.title}
+                    {title()}
                   </h1>
                 }
               >
@@ -103,16 +107,16 @@ const HeroSections: Component<Props> = (props) => {
             </Motion.div>
           </div>
           <div class="my-2 lg:mr-8">
-            <Show when={typeof localProps.subtitle !== undefined}>
+            <Show when={typeof subtitle() !== undefined}>
               <Motion.div
                 initial={{ opacity: 0, y: -25 }}
                 inView={{ opacity: 1, y: 0, transition: { duration: 0.8 } }}
               >
                 <Show
-                  when={typeof localProps.subtitle !== "string"}
+                  when={typeof subtitle() !== "string"}
                   fallback={
                     <p class="font-medium text-lg md:text-xl">
-                      {localProps.subtitle}
+                      {subtitle()}
                     </p>
                   }
                 >

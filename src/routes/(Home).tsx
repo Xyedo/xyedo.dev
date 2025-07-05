@@ -2,7 +2,7 @@ import { blogList } from "~/../content/blog/list";
 import { projectList } from "~/../content/project/list";
 import { Component, createEffect, For, onCleanup } from "solid-js";
 import { createStore } from "solid-js/store";
-import { useRouteData } from "solid-start";
+import { type RouteDefinition } from "@solidjs/router";
 import ButtonWrapper from "~/components/Button";
 import HeroSections from "~/components/section/hero-sections";
 import SEO from "~/components/SEO";
@@ -16,63 +16,85 @@ type InitVal = {
   delta: number;
 };
 
-const BannerInitVal: InitVal = {
-  loopNum: 0,
-  isDeleting: false,
-  delta: 300 - Math.random() * 100,
-  text: "",
-};
-export function routeData() {
-  return {
-    get blogs() {
-      return Object.entries(blogList).sort(
+const routeData = {
+  get blogs() {
+    return Object.entries(blogList)
+      .sort(
         (a, b) =>
           b[1].date.getUTCMilliseconds() - a[1].date.getUTCMilliseconds()
-      ).reverse();
-    },
-    get projects() {
-      return Object.entries(projectList)
-        .sort(
-          (a, b) =>
-            a[1].date.getUTCMilliseconds() - b[1].date.getUTCMilliseconds()
-        )
-        .reverse().slice(0, 5);
-    },
-  };
-}
-const Home: Component = () => {
-  const data = useRouteData<typeof routeData>();
-  const [state, setState] = createStore(BannerInitVal);
-  const toRotate = ["Fullstack dev", "Firmware Eng"];
-  const tick = (loopNum: number, isDeleting: boolean, text: string) => {
-    const i = loopNum % toRotate.length;
-    const fullText = toRotate[i];
-    if (isDeleting) {
-      setState((state) => ({
-        text: fullText.substring(0, state.text.length - 1),
-        delta: 100,
+      )
+      .reverse()
+      .map(([id, blog]) => ({
+        banner: blog.banner,
+        categories: blog.categories,
+        date: blog.date,
+        description: blog.description,
+        title: blog.title,
+        id: id,
       }));
-    } else {
-      setState((state) => ({
-        text: fullText.substring(0, state.text.length + 1),
-      }));
-    }
-    if (!isDeleting && text === fullText) {
-      setState({
-        delta: 2000,
-        isDeleting: true,
+  },
+  get projects() {
+    return Object.entries(projectList)
+      .sort(
+        (a, b) =>
+          a[1].date.getUTCMilliseconds() - b[1].date.getUTCMilliseconds()
+      )
+      .reverse()
+      .slice(0, 5)
+      .map(([id, project]) => {
+        return {
+          id,
+          banner: project.banner,
+          categories: project.categories,
+          date: project.date,
+          description: project.description,
+          stacks: project.stacks,
+          title: project.title,
+        };
       });
-    } else if (isDeleting && text === "") {
-      setState((state) => ({
-        delta: 200,
-        loopNum: state.loopNum + 1,
-        isDeleting: false,
-      }));
-    }
-  };
+  },
+};
+
+export const route = {
+  preload: () => routeData,
+} satisfies RouteDefinition;
+
+const Home: Component = () => {
+  const data = routeData;
+  const [state, setState] = createStore<InitVal>({
+    loopNum: 0,
+    isDeleting: false,
+    delta: 300 - Math.random() * 100,
+    text: "",
+  });
+
+  const toRotate = ["Fullstack dev", "Firmware Eng"];
   createEffect(() => {
     const track = setInterval(() => {
-      tick(state.loopNum, state.isDeleting, state.text);
+      const i = state.loopNum % toRotate.length;
+      const fullText = toRotate[i];
+      if (state.isDeleting) {
+        setState((state) => ({
+          text: fullText.substring(0, state.text.length - 1),
+          delta: 100,
+        }));
+      } else {
+        setState((state) => ({
+          text: fullText.substring(0, state.text.length + 1),
+        }));
+      }
+      if (!state.isDeleting && state.text === fullText) {
+        setState({
+          delta: 2000,
+          isDeleting: true,
+        });
+      } else if (state.isDeleting && state.text === "") {
+        setState((state) => ({
+          delta: 200,
+          loopNum: state.loopNum + 1,
+          isDeleting: false,
+        }));
+      }
     }, state.delta);
 
     onCleanup(() => clearInterval(track));
@@ -127,12 +149,12 @@ const Home: Component = () => {
           </h1>
           <section class="flex flex-col sm:flex-row sm:flex-wrap sm:items-center sm:justify-center sm:space-x-4 ">
             <For each={data.blogs}>
-              {([id, blog]) => (
+              {(blog) => (
                 <BlogCard
                   banner={blog.banner}
                   categories={blog.categories}
                   date={blog.date}
-                  id={id}
+                  id={blog.id}
                   description={blog.description}
                   title={blog.title}
                 />
@@ -144,9 +166,9 @@ const Home: Component = () => {
           </h1>
           <section>
             <For each={data.projects}>
-              {([idx, project]) => (
+              {(project) => (
                 <ProjectCard
-                  id={idx}
+                  id={project.id}
                   description={project.description}
                   categories={project.categories}
                   banner={project.banner}
