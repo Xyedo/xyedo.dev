@@ -1,48 +1,53 @@
 import { blogList } from "~/../content/blog/list";
-import { createResource, Component } from "solid-js";
+import { Component, Show } from "solid-js";
 
-import { useRouteData } from "solid-start";
 import SEO from "~/components/SEO";
 import createScrollSpy from "~/hooks/scroll";
 import ArticleSection from "~/components/section/article-section";
+import {
+  query,
+  Params,
+  RouteDefinition,
+  createAsync,
+  useParams,
+} from "@solidjs/router";
 
-export function routeData({ params }: any) {
-  const [article] = createResource(async () => {
-    return blogList[params.slug].body();
-  });
-  
+const routeData = query(async (params: Params) => {
+  const article = await blogList[params.slug].body();
   return {
-    get details() {
-      return blogList[params.slug];
-    },
-    get article() {
-      
-      return article;
-    },
+    details: blogList[params.slug],
+    article,
   };
-}
+}, "blog/[slug]");
+
+export const route = {
+  preload: (args) => routeData(args.params),
+} satisfies RouteDefinition;
 
 const Blog: Component = () => {
-  const data = useRouteData<typeof routeData>();
-  const sections = () => data.article()?.toc;
-  const readingTime = () => data.article()?.readingTime;
-  const blog = () => data.article()?.default;
+  const params = useParams();
+  const data = createAsync(() => routeData(params));
+  const sections = () => data()?.article.toc;
+  const readingTime = () => data()?.article.readingTime;
+  const blog = () => data()?.article.default;
   const currHeading = createScrollSpy(sections);
-  
+
   return (
     <>
       <SEO
-        title={data.details.title + " | Xyedo"}
-        image={data.details.banner}
-        description={data.details.description}
+        title={data()?.details.title + " | Xyedo"}
+        image={data()?.details.banner}
+        description={data()?.details.description}
       />
-      <ArticleSection
-        articleData={blog}
-        currHeading={currHeading}
-        details={data.details}
-        readingTime={readingTime}
-        sections={sections}
-      />
+      <Show when={data()?.details}>
+        <ArticleSection
+          articleData={blog}
+          currHeading={currHeading}
+          details={data()!.details}
+          readingTime={readingTime}
+          sections={sections}
+        />
+      </Show>
     </>
   );
 };

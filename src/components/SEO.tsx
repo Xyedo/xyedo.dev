@@ -1,4 +1,5 @@
-import { Meta, Title, useLocation } from "solid-start";
+import { Meta, Title } from "@solidjs/meta";
+import { useLocation } from "@solidjs/router";
 import { Component, mergeProps } from "solid-js";
 
 const defaultMeta = {

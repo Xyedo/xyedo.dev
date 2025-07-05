@@ -5,7 +5,7 @@
     "esModuleInterop": true,
     "target": "ESNext",
     "module": "ESNext",
-    "moduleResolution": "node",
+    "moduleResolution": "bundler",
     "jsxImportSource": "solid-js",
     "noUnusedLocals": true,
     "noUnusedParameters": true,
@@ -13,7 +13,8 @@
     "strict": true,
     "noEmit": true,
     "jsx": "preserve",
-    "types": ["vite/client"],
+    "isolatedModules": true,
+    "types": ["vinxi/types/client"],
     "baseUrl": "./",
     "paths": {
       "~/*": ["./src/*"]

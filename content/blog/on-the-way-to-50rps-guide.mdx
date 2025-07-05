@@ -1,0 +1,224 @@
+
+Imagine this: your product starts gaining traction. Users pile in. Traffic doubles overnight. Suddenly, your clean, well-tested backend starts to crawl, logs fill with timeouts, and your once-innocent API dashboard flashes red.
+
+Most developers assume scaling is something you do when you hit thousands of requests per second. The truth? Many backends buckle before reaching 50 RPS—fifty simple requests every second. It sounds trivial, but it’s often the first threshold where naive code, hidden I/O bottlenecks, and unoptimized queries reveal themselves.
+
+This guide is your blueprint to survive—and thrive—past that threshold. We’ll cover:
+
+How to measure and understand your real RPS capacity
+
+The most common traps (and how to avoid them)
+
+Proven patterns for handling load without rewriting everything
+
+Whether you’re an early-stage startup or a developer preparing for growth, you’ll learn how to build backends that stay fast, stable, and ready for the next wave of users.
+
+Let’s dive in, hint: **optimizing database is more than enough**.
+
+## Don't Use Redis, atleast not yet
+
+Redis is a powerful tool, but it’s often overkill for early-stage products.
+When you’re still figuring out your core features and user flows, adding Redis can complicate your architecture without providing significant benefits. Instead, focus on optimizing your database queries and caching at the application level.
+
+Adding Redis before maximizing your databases potential is like giving a drug to reduce the symptoms of a disease without treating the root cause. It can mask performance issues instead of solving them.
+
+## Dont Use ORM
+When You Use ORM, you adding a layer translation between orm and the databases, which is increased the overhead translation in your head when you found the query in the monitoring tools and converting back into the ORM to know which code is responsible for the query.
+and it goes bothways, when you want to optimize the query, you need to convert it back to the ORM syntax, which is not always straightforward.
+Instead, use a lightweight database driver that allows you to write raw SQL queries. This gives you more control over your queries and allows you to optimize them for performance.
+
+
+## Dont Use Microservices for Everything
+
+Microservices can add unnecessary complexity, especially when you’re still figuring out your core features. Instead, focus on building a monolith that’s easy to understand and maintain.
+Use Modulith to manage your monolith's complexity by breaking it into smaller and creating an contract to call another module, like REST but in memory, its more manageable modules without fully embracing microservices.
+This allows you to keep the benefits of a monolith while still organizing your codebase in a way that makes it easier to scale and maintain.
+The Only Downside of the modulith is we need to use the same languange for the application, which is not always the case in the microservices architecture, where you can use different languages for different services.
+Until you've hit the limits of your monolith after optimizing extensively, then consider breaking it into microservices. This way, you can scale specific parts of your application independently without the overhead of managing multiple services from the start.
+
+
+## Use Prepared Statements
+
+In SQL, use prepared statements to cache query plans. This reduces the overhead of parsing and planning queries, especially for frequently executed ones.
+
+In the initialization of databases session in your application, you can prepare statements that will be reused across requests. This is particularly useful for queries that are executed often with different parameters.
+For example, if you have a query that retrieves user data by ID, you can prepare it
+once and reuse it for each request, significantly improving performance.
+Here’s how you can prepare a statement in PostgreSQL:
+
+```sql 
+PREPARE get_user_by_id AS SELECT * FROM users WHERE id = $1;
+```
+
+Then, you can execute it with:
+
+```sql
+EXECUTE get_user_by_id(1);
+```
+
+This approach reduces the overhead of query parsing and planning, leading to faster execution times, especially for high-frequency queries.
+
+You can also uses the chacing databases prepared statements in the application level using LRU cache to cache everything and let the LRU cache handle the eviction of old entries.
+
+anyway if you are in golang, this achived automatically by using [pgx library](https://github.com/jackc/pgx), which caches prepared statements by default.
+
+but on the dynamic args, we need to use the `IN` clause for multiple values, this makes you cant prepare the statement because the number of arguments is dynamic.
+```sql
+SELECT * FROM users WHERE id IN ($1, $2, $3, ..., $n);
+```
+In PostgreSQL, you can use the `ANY` operator to achieve similar functionality without needing to build a statement for each possible number of arguments:
+
+```sql
+SELECT * FROM users WHERE id = ANY(?);
+```
+This allows you to pass an array of IDs as a parameter, and the query can be used as Prepared Statement because the number of arguments is fixed.
+
+
+## Use Connection Pooling
+
+I think most of you already know this, but it’s worth mentioning. Connection pooling is crucial for managing database connections efficiently. It reduces the overhead of establishing new connections for each request, which can be a significant bottleneck.
+
+
+## Uses Monitoring and Observability Tools
+
+Monitoring and observability tools are essential for understanding your system’s performance. They help you identify bottlenecks, track request rates, and monitor database performance.
+Tools like Prometheus, Grafana, and ELK stack can provide insights into your application’s performance and help you make informed decisions about optimizations.
+
+But I think the most important ones is we know that which one is the databases query that is taking the most time, and which one is the most frequently executed queries, so we can optimize them first.
+
+## Use Indexes Wisely
+
+As the wise says, "Premature Optimization is the root of all evil", dont pre-index before you know the read and write patterns of your application. Indexes can significantly speed up read operations, but they also add overhead to write operations. 
+Use indexes on columns that are frequently queried and taking a long time by the monitoring tools in the production environment.
+
+You can use the `EXPLAIN` command in PostgreSQL to analyze query performance and identify which queries would benefit from indexing. For example:
+
+```sql
+EXPLAIN ANALYZE SELECT * FROM users WHERE email = 'user@example.com';
+```
+
+Indexes can also be used on the query Below
+```sql
+SELECT * FROM chats
+WHERE user_id = $1
+ORDER BY created_at ASC, uuid ASC;
+LIMIT 10;
+```
+In this case, you can create a composite index on `user_id`, `created_at`, and `uuid` to speed up the query:
+```sql
+CREATE INDEX idx_chats_user_created_uuid ON chats (user_id, created_at ASC, uuid ASC);
+```
+
+The Index is not used when the query is not selective enough, meaning that it returns a large portion of the table. In such cases, the database may choose to perform a full table scan instead of using the index to lookup the row. This can happen when the query conditions are too broad or when the indexed columns do not significantly reduce the number of rows returned.
+So, it’s important to analyze the query patterns and the data distribution in your tables before adding indexes.
+
+Also, <b>Index Your Foreign Keys</b>
+
+Its Not Intuitive why foreign keys to a PRIMARY KEY not indexed by default, but nonetheless, it’s a common pitfall. Foreign keys are often used in JOIN operations, and indexing them can significantly speed up these queries.
+
+
+## Use Databases Locking to Manage Consistency
+
+If you dont know about locking, i already covered it the databases locking what problem they are solving in my previous article [Database Concurency Problem and Benchmark](https://xyedo.dev/blog/database-concurency-problem-and-benchmark).
+
+Locking is divided into two main types: Optimistic Locking and Pessimistic Locking.
+
+- Optimistic Locking assumes that conflicts are rare and allows multiple transactions to proceed without locking resources. It checks for conflicts only at the time of commit, rolling back if a conflict is detected.
+To use Optimistic Locking in SQL, just use the the transaction isolation level in `SERIALIZABLE` or `REPEATABLE READ`, OR use a version column in your table to track changes. When updating a row, you check the version number to ensure it hasn’t changed since you read it.
+
+- Pessimistic Locking, on the other hand, locks resources at the beginning of a transaction, preventing other transactions from modifying them until the lock is released. This can lead to deadlocks if not managed carefully.
+Pessimistic Locking can be implemented in SQL using the `SELECT FOR UPDATE` statement, which locks the selected rows until the transaction is committed or rolled back. For example:
+
+```sql
+BEGIN;
+SELECT * FROM users WHERE id = 1 FOR UPDATE;
+-- Perform updates here
+COMMIT;
+```
+
+there is common pitfalls in the Pessimistic Locking, which is the deadlocks, which occurs when two or more transactions are waiting for each other to release locks, resulting in a standstill. To avoid deadlocks, you can use a consistent locking order, where all transactions acquire locks in the same order, or implement a timeout mechanism to detect and resolve deadlocks automatically.
+for example, when locking mutiple rows, always lock them in the same order across all transactions. This prevents circular wait conditions that lead to deadlocks.
+
+```sql
+BEGIN;
+SELECT * FROM order WHERE order_group = $1
+ORDER BY created_at ASC, uuid ASC -- Locking the rows in a specific order
+FOR UPDATE;
+```
+
+SELECT FOR UPDATE is locking the rows at global level.
+if you in the scenarios where you need to ensure that only one transaction can perform a specific operation, you can use Advisory Locks. Advisory locks are application-level locks that can be used to synchronize access to resources across multiple transactions. They are not tied to specific rows or tables, allowing you to implement custom locking logic.
+My Suggestion is that use advisory locks in the transaction scope by using pg_advisory_xact_lock
+
+```sql
+BEGIN;
+SELECT pg_advisory_xact_lock(1); -- Acquire an advisory lock with a unique identifier and automatically release it at the end of the transaction
+-- Perform operations here
+COMMIT;
+```
+
+A tips:
+- You can skip locked rows in a `SELECT` query by using the `NOWAIT` option, which will return an error if the row is locked by another transaction instead of waiting for it to be released. This can help avoid deadlocks and improve performance in high-concurrency scenarios.
+- You can use `SELECT ... FOR UPDATE SKIP LOCKED` to skip rows that are currently locked by other transactions. This allows your transaction to continue processing without waiting for the locked rows to be released, which can be useful when you are trying to make multiple consumer. for example
+
+```sql
+BEGIN;
+SELECT * FROM tasks
+WHERE status = 'pending'
+ORDER BY created_at ASC
+LIMIT 10
+FOR UPDATE SKIP LOCKED; -- Skip locked rows and continue processing
+-- Perform operations on the selected tasks
+COMMIT;
+```
+That way you can processed task in a concurrent way without waiting for the locked rows to be released, which can improve performance in high-concurrency scenarios.
+- You can also skip lock in advisory locks by using `pg_try_advisory_xact_lock`, which attempts to acquire the advisory lock without waiting. If the lock is already held, it returns false instead of blocking. this useful when you trying to acquire a resource for once, and you dont want to wait for it to be released by another transaction.
+
+```sql
+BEGIN;
+IF pg_try_advisory_xact_lock(1) THEN
+    -- Perform operations here
+ELSE
+    -- Handle the case where the lock is already held
+END IF;
+COMMIT;
+```
+
+As the wise says, "Premature Optimization is the root of all evil".
+I think the most default one is Use Optimistic Locking for default,
+and If the optimistic locking cannot handle the load of the path of your program, for example a bulk request, or high contention on a specific resource,
+and then you can use Pessimistic Locking, but be careful with it, because it can lead to deadlocks if not handled properly.
+
+
+## Optimize Your Application that are calling the databases
+
+Your algorithm and data structures matter. If you’re making multiple database calls in a loop, consider selecting in bulk.
+For example:
+- Instead of querying the database for each user in a loop, you can fetch all users in a single query and process them in memory. This reduces the overhead of multiple database calls and improves performance.
+This Problem is knonwn as the N+1 query problem.
+
+- Uses Batch Operations
+Batch operations allow you to perform multiple database operations in a single request, reducing the overhead of multiple round trips to the database. For example, instead of inserting each user one by one, you can insert them in bulk:
+You can achive this in pgx by using pgx.Batch, which allows you to group multiple SQL statements into a single batch and execute them in one go. This can significantly reduce the number of round trips to the database and improve performance.
+
+```go
+batch := &pgx.Batch{}
+batch.Queue("INSERT INTO users (name, email) VALUES ($1, $2)", user.Name, user.Email)
+batch.Queue("INSERT INTO chats (user_id, message) VALUES ($1, $2)", user.ID, chat.Message)
+err :=conn.SendBatch(context.Background(), batch).Close()
+if err != nil {
+    return err
+}
+```
+
+
+## Conclusion
+
+Reaching 50 RPS is a meaningful milestone for any backend, and it often exposes the real bottlenecks in your system. By focusing on database optimization, avoiding premature complexity (like Redis, ORMs, and microservices), leveraging prepared statements, connection pooling, and proper indexing, you can achieve significant performance gains without overengineering. Monitoring, observability, and understanding locking strategies further ensure your system remains robust under load. Always optimize based on real data and usage patterns, and remember: simplicity and clarity in your architecture will take you further than chasing every new tool or pattern. Build a solid foundation first—scalability will follow.
+
+
+
+
+
+
+

@@ -1,5 +1,5 @@
 import { Component } from "solid-js";
-import { Motion } from "@motionone/solid";
+import { Motion } from "solid-motionone";
 import ButtonWrapper from "~/components/Button";
 import SEO from "~/components/SEO";
 type Props = {};

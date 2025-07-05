@@ -1,5 +1,5 @@
 import { BlogInfo } from "content/blog/list";
-import { A } from "solid-start";
+import { A } from "@solidjs/router";
 
 interface BlogCard extends Omit<BlogInfo, "body" | "bannerCredit" | "keyword"> {
   id: string;
@@ -9,7 +9,7 @@ export default function BlogCard(props: BlogCard) {
     <A href={`/blog/${props.id}`}>
       <div
         class="bg-secondary shadow-xl border-transparent relative hover:scale-[.98] hover:border-primary 
-      border-4 hover:border-pink focus:border-pink focus:outline-none max-w-md min-h-[600px] 
+      border-4 hover:border-pink focus:border-pink focus:outline-hidden max-w-md min-h-[600px] 
       rounded-3xl  p-5 box-border pb-7 my-5 flex flex-col transition"
       >
         <div class="relative">
@@ -18,7 +18,7 @@ export default function BlogCard(props: BlogCard) {
             src={props.banner}
             alt="banner image"
           />
-          <div class="bg-primary bottom-4 left-0 py-1 px-3 absolute z-10 bg-pink border-pink border-2 rounded-sm uppercase text-inverse font-bold ">
+          <div class="bg-primary bottom-4 left-0 py-1 px-3 absolute z-10 bg-pink border-pink border-2 rounded-xs uppercase text-inverse font-bold ">
             {props.categories}
           </div>
         </div>
