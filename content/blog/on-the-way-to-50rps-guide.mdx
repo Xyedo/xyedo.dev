@@ -5,8 +5,6 @@ Most developers assume scaling is something you do when you hit thousands of req
 
 This guide is your blueprint to survive—and thrive—past that threshold. We’ll cover:
 
-How to measure and understand your real RPS capacity
-
 The most common traps (and how to avoid them)
 
 Proven patterns for handling load without rewriting everything
@@ -116,6 +114,12 @@ Also, <b>Index Your Foreign Keys</b>
 
 Its Not Intuitive why foreign keys to a PRIMARY KEY not indexed by default, but nonetheless, it’s a common pitfall. Foreign keys are often used in JOIN operations, and indexing them can significantly speed up these queries.
 
+
+<img
+  src="https://raw.githubusercontent.com/Xyedo/xyedo.dev/master/public/img/blog/before-after-index.png"
+  width="500"
+  alt="before and after indexing"
+/>
 
 ## Use Databases Locking to Manage Consistency
 
