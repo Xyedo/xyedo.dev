@@ -47,7 +47,8 @@ export const blogList: { [key: string]: BlogInfo } = {
       "How to mitigating a panic invalid memory address or nil pointer dereference in Go with stealing feature from another languange",
     categories: "tutorial",
     keyword: ["golang", "pointer"],
-    body: async () => await import("./migitating-panic-nil-pointer-derefence-in-go.mdx"),
+    body: async () =>
+      await import("./migitating-panic-nil-pointer-derefence-in-go.mdx"),
   },
   "grpc-as-a-service-communication": {
     title: "gRPC as A Service Communication ",
@@ -71,7 +72,8 @@ export const blogList: { [key: string]: BlogInfo } = {
       "How to Prevent Database Concurency Problem by Knowing the Problem, the Variety of Solutions, and Benchmark it to see some trade-off",
     categories: "tutorial",
     keyword: ["rdbms", "postgresql", "benchmark"],
-    body: async () => await import("./database-concurency-problem-and-benchmark.mdx"),
+    body: async () =>
+      await import("./database-concurency-problem-and-benchmark.mdx"),
   },
   "on-the-way-to-50rps-guide": {
     title: "On the Way to 50 RPS: A Practical Guide to Scaling Your Backend",
@@ -84,5 +86,17 @@ export const blogList: { [key: string]: BlogInfo } = {
     categories: "tutorial",
     keyword: ["performance", "optimization", "databases"],
     body: async () => await import("./on-the-way-to-50rps-guide.mdx"),
+  },
+  "diving-postgres-internal": {
+    title: "Diving Deep into PostgreSQL Internals",
+    date: new Date(2025, 0, 15),
+    banner:
+      "https://images.unsplash.com/photo-1544383835-bda2bc66a55d?q=80&w=1472&auto=format&fit=crop&ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D",
+    bannerCredit: "https://unsplash.com/@danist07",
+    description:
+      "An in-depth exploration of PostgreSQL's internal architecture: table and index structures with heaps, FSM, and VM; how tuple headers with xmin/xmax enable MVCC; hint bits optimization; and pg_xact transaction management.",
+    categories: "tutorial",
+    keyword: ["postgresql", "database", "internals", "mvcc"],
+    body: async () => await import("./diving-postgres-internal.mdx"),
   },
 };
